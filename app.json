@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "SwiftBets",
+    "slug": "swiftbets",
+    "scheme": "swiftbets",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0b1220"
+    },
+    "android": {
+      "package": "com.remonenaidoo.swiftbets",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png",
+        "backgroundColor": "#0b1220"
+      },
+      "allowBackup": false
+    },
+    "plugins": ["expo-router", "expo-secure-store"]
+  }
+}
