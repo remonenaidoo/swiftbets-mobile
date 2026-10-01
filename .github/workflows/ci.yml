@@ -20,6 +20,28 @@ jobs:
       packages: write
       security-events: write
 
+  # The web export under Playwright: account flows against a stubbed gateway, and axe on every account screen.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e
+      - uses: actions/upload-artifact@v5
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
   # A version tag builds the signed release APK and publishes it as a GitHub Release; the website's
   # "Get the Android app" link always points at the latest one.
   apk:
