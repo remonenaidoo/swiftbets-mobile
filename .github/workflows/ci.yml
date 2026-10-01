@@ -5,6 +5,7 @@ on:
     branches: [main]
     tags: ['v*']
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -12,7 +13,47 @@ permissions:
 jobs:
   node:
     uses: remonenaidoo/swiftbets-platform/.github/workflows/node.yml@main
+    with:
+      image: swiftbets-web
     permissions:
       contents: read
       packages: write
       security-events: write
+
+  # A version tag builds the signed release APK and publishes it as a GitHub Release; the website's
+  # "Get the Android app" link always points at the latest one.
+  apk:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: node
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - run: npm ci
+      - name: Build signed APK
+        env:
+          SWIFTBETS_KEYSTORE_BASE64: ${{ secrets.SWIFTBETS_KEYSTORE_BASE64 }}
+          SWIFTBETS_KEYSTORE_PASSWORD: ${{ secrets.SWIFTBETS_KEYSTORE_PASSWORD }}
+          VERSION_CODE: ${{ github.run_number }}
+        run: |
+          echo "$SWIFTBETS_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+          SWIFTBETS_KEYSTORE="$RUNNER_TEMP/release.keystore" scripts/build-apk.sh
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist-apk/swiftbets.apk \
+            --title "SwiftBets $GITHUB_REF_NAME (Android)" \
+            --notes "Signed release APK. Install on Android: allow installs from your browser, then open swiftbets.apk." \
+            --latest

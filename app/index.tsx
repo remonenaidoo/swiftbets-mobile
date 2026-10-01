@@ -1,10 +1,12 @@
-import { Stack } from 'expo-router';
+import Head from 'expo-router/head';
 import { FixturesScreen } from '../src/features/fixtures/components/FixturesScreen';
 
-export default function FixturesRoute() {
+export default function SportsRoute() {
   return (
     <>
-      <Stack.Screen options={{ title: 'Fixtures' }} />
+      <Head>
+        <title>SwiftBets · Football betting</title>
+      </Head>
       <FixturesScreen />
     </>
   );
