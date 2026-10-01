@@ -6,6 +6,8 @@ export interface ApiClientDependencies {
   /** Exchanges the stored refresh token; resolves false when the session is gone. */
   refresh: () => Promise<boolean>;
   onSessionExpired: () => void;
+  /** Sent on every request, e.g. a user agent the edge firewall accepts. */
+  defaultHeaders?: Record<string, string>;
   fetchImpl?: typeof fetch;
 }
 
@@ -27,6 +29,9 @@ export function createApiClient(dependencies: ApiClientDependencies) {
   async function send(path: string, init: RequestInit): Promise<Response> {
     const headers = new Headers(init.headers);
     headers.set('Accept', 'application/json');
+    for (const [name, value] of Object.entries(dependencies.defaultHeaders ?? {})) {
+      headers.set(name, value);
+    }
     const token = await dependencies.getAccessToken();
     if (token) {
       headers.set('Authorization', `Bearer ${token}`);

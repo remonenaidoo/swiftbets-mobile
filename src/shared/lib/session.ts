@@ -1,4 +1,4 @@
-import { apiOrigin, isWeb } from './config';
+import { apiOrigin, isWeb, nativeUserAgent } from './config';
 import { createApiClient } from './createApiClient';
 import { ApiError, type ErrorEnvelopeShape } from './apiError';
 import { tokenStore } from './tokenStore';
@@ -36,7 +36,10 @@ async function readEnvelope(response: Response): Promise<ErrorEnvelopeShape | un
 }
 
 async function nativeDemoSignIn(): Promise<boolean> {
-  const response = await fetch(`${apiOrigin}/api/session/demo/token?as=punter`, { method: 'POST', headers: { 'X-SwiftBets-Csrf': '1', Accept: 'application/json' } });
+  const response = await fetch(`${apiOrigin}/api/session/demo/token?as=punter`, {
+    method: 'POST',
+    headers: { 'X-SwiftBets-Csrf': '1', Accept: 'application/json', 'User-Agent': nativeUserAgent },
+  });
   if (!response.ok) {
     return false;
   }
@@ -47,13 +50,14 @@ async function nativeDemoSignIn(): Promise<boolean> {
 
 const nativeClient = createApiClient({
   baseUrl: `${apiOrigin}/api`,
+  defaultHeaders: { 'User-Agent': nativeUserAgent },
   getAccessToken: () => tokenStore.getAccessToken(),
   refresh: async () => {
     const refreshToken = await tokenStore.getRefreshToken();
     if (refreshToken) {
       const response = await fetch(`${apiOrigin}/api/auth/refresh`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'User-Agent': nativeUserAgent },
         body: JSON.stringify({ refreshToken }),
       });
       if (response.ok) {

@@ -1,5 +1,5 @@
 import { HubConnectionBuilder, LogLevel, type HubConnection } from '@microsoft/signalr';
-import { apiOrigin, isWeb } from '../lib/config';
+import { apiOrigin, isWeb, nativeUserAgent } from '../lib/config';
 import { accessTokenForHub } from '../lib/session';
 import type { LiveDelta } from '../lib/types';
 
@@ -23,7 +23,9 @@ class Live {
     const connection = new HubConnectionBuilder()
       .withUrl(
         `${apiOrigin}/api/hubs/live`,
-        isWeb ? { headers: { 'X-SwiftBets-Csrf': '1' }, withCredentials: true } : { accessTokenFactory: accessTokenForHub },
+        isWeb
+          ? { headers: { 'X-SwiftBets-Csrf': '1' }, withCredentials: true }
+          : { accessTokenFactory: accessTokenForHub, headers: { 'User-Agent': nativeUserAgent } },
       )
       .withAutomaticReconnect([0, 1_000, 2_000, 5_000, 10_000, 15_000])
       .configureLogging(LogLevel.Warning)
