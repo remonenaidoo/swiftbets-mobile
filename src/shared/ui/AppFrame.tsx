@@ -4,8 +4,10 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Betslip } from '../../features/betslip/components/Betslip';
 import { BetslipDock } from '../../features/betslip/components/BetslipDock';
+import { useSignOut } from '../../features/account/api/account';
 import { useBalance } from '../../features/my-bets/api/myBets';
 import { formatRand } from '../lib/format';
+import { useSession } from '../lib/useSession';
 import { useIsWide } from './Layout';
 import { GetTheApp } from './GetTheApp';
 import { Toast } from './Toast';
@@ -21,6 +23,8 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
   const balance = useBalance();
+  const signedIn = useSession().data?.signedIn === true;
+  const signOut = useSignOut();
 
   return (
     <View style={styles.root}>
@@ -29,12 +33,12 @@ export function AppFrame({ children }: { children: ReactNode }) {
           <Text style={styles.brand} accessibilityRole="header">
             SWIFT<Text style={styles.brandAccent}>BETS</Text>
           </Text>
-          <View style={styles.nav} accessibilityRole="tablist">
+          <View style={styles.nav} role="navigation" aria-label="Main">
             {nav.map((item) => {
               const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
               return (
                 <Link key={item.href} href={item.href} asChild>
-                  <Pressable accessibilityRole="tab" accessibilityState={{ selected: active }} style={StyleSheet.flatten([styles.navItem, active && styles.navItemActive])}>
+                  <Pressable aria-current={active ? 'page' : undefined} style={StyleSheet.flatten([styles.navItem, active && styles.navItemActive])}>
                     <Text style={StyleSheet.flatten([styles.navText, active && styles.navTextActive])}>{item.label}</Text>
                   </Pressable>
                 </Link>
@@ -42,10 +46,26 @@ export function AppFrame({ children }: { children: ReactNode }) {
             })}
           </View>
           {wide ? <GetTheApp /> : null}
-          <View style={styles.balance} accessibilityLabel="Balance">
-            <Text style={styles.balanceLabel}>Balance</Text>
-            <Text style={styles.balanceValue}>{balance.data ? formatRand(balance.data.available.minorUnits, balance.data.available.currency) : '…'}</Text>
-          </View>
+          {signedIn ? (
+            <>
+              <View style={styles.balance} accessibilityLabel="Balance">
+                <Text style={styles.balanceLabel}>Balance</Text>
+                <Text style={styles.balanceValue}>{balance.data ? formatRand(balance.data.available.minorUnits, balance.data.available.currency) : '…'}</Text>
+              </View>
+              <Pressable accessibilityRole="button" onPress={() => signOut.mutate()}>
+                <Text style={styles.authLink}>Sign out</Text>
+              </Pressable>
+            </>
+          ) : (
+            <View style={styles.auth}>
+              <Link href="/account/sign-in" style={styles.authLink}>
+                Sign in
+              </Link>
+              <Link href="/account/register" style={styles.register}>
+                Join
+              </Link>
+            </View>
+          )}
         </View>
       </View>
 
@@ -77,6 +97,9 @@ const styles = StyleSheet.create({
   balance: { alignItems: 'flex-end' },
   balanceLabel: { color: colors.textMuted, fontSize: 11 },
   balanceValue: { color: colors.positive, fontWeight: '700', fontSize: 15, fontVariant: ['tabular-nums'] },
+  auth: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  authLink: { color: colors.text, fontWeight: '600' },
+  register: { color: '#ffffff', fontWeight: '700', backgroundColor: colors.accentStrong, paddingVertical: 6, paddingHorizontal: 12, borderRadius: radius.md, overflow: 'hidden' },
   body: { flex: 1 },
   bodyWide: { flexDirection: 'row', width: '100%', maxWidth: maxContentWidth, alignSelf: 'center' },
   main: { flex: 1 },

@@ -6,6 +6,7 @@ import type { Fixture, MyCoupon, MyCouponLeg } from '../../../shared/lib/types';
 import { EmptyState } from '../../../shared/ui/EmptyState';
 import { colors, maxContentWidth, radius, spacing } from '../../../shared/ui/theme';
 import { fixturesKey } from '../../fixtures/api/fixtures';
+import { useSession } from '../../../shared/lib/useSession';
 import { useMyBets } from '../api/myBets';
 
 interface Tone {
@@ -43,6 +44,7 @@ function legLabel(leg: MyCouponLeg, fixture: Fixture | undefined): string {
 
 export function MyBetsScreen() {
   const bets = useMyBets();
+  const signedIn = useSession().data?.signedIn === true;
   const listed = useQueryClient().getQueryData<Fixture[]>(fixturesKey) ?? [];
   const legFixtureIds = [...new Set((bets.data ?? []).flatMap((c) => (c.legs ?? []).map((l) => l.fixtureId)))];
   // Matches leave the listing once played; their names come from the fixture itself.
@@ -55,6 +57,9 @@ export function MyBetsScreen() {
   const names = new Map(fixtures.map((f) => [f.fixtureId, `${f.homeTeam} v ${f.awayTeam}`]));
   const byId = new Map(fixtures.map((f) => [f.fixtureId, f]));
 
+  if (!signedIn) {
+    return <EmptyState title="Sign in to see your bets" message="Your bets appear here once you are signed in." />;
+  }
   if (bets.isPending) {
     return (
       <View style={styles.center}>

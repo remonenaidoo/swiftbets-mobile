@@ -1,8 +1,10 @@
+import { Link } from 'expo-router';
 import { useAtom, useSetAtom } from 'jotai';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { ApiError } from '../../../shared/lib/apiError';
 import { formatOdds, formatRand } from '../../../shared/lib/format';
+import { useSession } from '../../../shared/lib/useSession';
 import { colors, radius, spacing } from '../../../shared/ui/theme';
 import { toastAtom } from '../../../shared/ui/Toast';
 import { usePlaceCoupon } from '../api/placeCoupon';
@@ -32,6 +34,7 @@ export function Betslip({ onPlaced }: { onPlaced?: () => void }) {
   const place = usePlaceCoupon();
   const [confirmation, setConfirmation] = useState<string | null>(null);
   const toast = useSetAtom(toastAtom);
+  const signedIn = useSession().data?.signedIn === true;
 
   const stakeMinor = Math.round((Number.parseFloat(stake.replace(',', '.')) || 0) * 100);
   const odds = totalOdds(slip);
@@ -137,7 +140,13 @@ export function Betslip({ onPlaced }: { onPlaced?: () => void }) {
             </Text>
           ) : null}
 
-          {moved ? (
+          {!signedIn ? (
+            <Link href="/account/sign-in" asChild>
+              <Pressable accessibilityRole="button" style={styles.button}>
+                <Text style={styles.buttonText}>Sign in to place this bet</Text>
+              </Pressable>
+            </Link>
+          ) : moved ? (
             <Pressable accessibilityRole="button" onPress={() => setSlip(acceptPrices)} style={[styles.button, styles.buttonWarn]}>
               <Text style={styles.buttonText}>Accept new prices</Text>
             </Pressable>

@@ -34,4 +34,11 @@ describe('createApiClient', () => {
     expect((error as ApiError).code).toBe('unauthenticated');
     expect(onSessionExpired).toHaveBeenCalledTimes(1);
   });
+
+  it('treats an acknowledgement with no body as success', async () => {
+    const fetchImpl = jest.fn(async () => new Response(null, { status: 202 }));
+    const request = createApiClient({ baseUrl: 'https://api', getAccessToken: async () => 't', refresh: async () => false, onSessionExpired: jest.fn(), fetchImpl });
+
+    await expect(request('/auth/password-reset', { method: 'POST' })).resolves.toBeUndefined();
+  });
 });

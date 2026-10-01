@@ -1,5 +1,5 @@
 import { apiOrigin, isWeb, nativeUserAgent } from './config';
-import { createApiClient } from './createApiClient';
+import { createApiClient, readBody } from './createApiClient';
 import { ApiError, type ErrorEnvelopeShape } from './apiError';
 import { tokenStore } from './tokenStore';
 
@@ -7,7 +7,7 @@ import { tokenStore } from './tokenStore';
  * One API entry point for both shapes of the app.
  * - Web: the gateway's HttpOnly session cookie, plus the CSRF header on every mutation.
  * - Native: bearer tokens in the platform keystore with a single-flight refresh.
- * Either way a visitor never sees a sign-in form here: the preview signs them in as the demo punter.
+ * On an open preview the gateway's demo seat signs visitors in; everywhere else they sign in with their account.
  */
 
 async function webRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -21,7 +21,7 @@ async function webRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (!response.ok) {
     throw new ApiError(response.status, await readEnvelope(response));
   }
-  return response.status === 204 ? (undefined as T) : ((await response.json()) as T);
+  return readBody<T>(response);
 }
 
 async function readEnvelope(response: Response): Promise<ErrorEnvelopeShape | undefined> {
@@ -80,25 +80,77 @@ interface SessionInfo {
   roles: string[];
 }
 
-/** Makes sure the visitor holds a punter session; signs them in as the demo punter when they do not. */
-export async function ensurePunterSession(): Promise<void> {
+export interface Session {
+  signedIn: boolean;
+  subject: string | null;
+  roles: string[];
+}
+
+const signedOut: Session = { signedIn: false, subject: null, roles: [] };
+
+/**
+ * The visitor's session. On an open preview the gateway offers a demo seat and the visitor is signed into it; everywhere
+ * else a visitor browses signed out until they sign in.
+ */
+export async function loadSession(): Promise<Session> {
   if (isWeb) {
     try {
       const session = await webRequest<SessionInfo>('/session');
-      if (session.roles.includes('Punter')) {
-        return;
-      }
+      return { signedIn: true, subject: session.subject, roles: session.roles };
     } catch (error) {
       if (!(error instanceof ApiError) || error.status !== 401) {
         throw error;
       }
     }
-    await webRequest('/session/demo?as=punter', { method: 'POST' });
-    return;
+    try {
+      await webRequest('/session/demo?as=punter', { method: 'POST' });
+      const session = await webRequest<SessionInfo>('/session');
+      return { signedIn: true, subject: session.subject, roles: session.roles };
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) {
+        return signedOut;
+      }
+      throw error;
+    }
   }
 
-  if (!(await tokenStore.getAccessToken()) && !(await nativeDemoSignIn())) {
-    throw new Error('Could not start a session.');
+  if ((await tokenStore.getAccessToken()) || (await nativeDemoSignIn())) {
+    return { signedIn: true, subject: null, roles: ['Punter'] };
+  }
+  return signedOut;
+}
+
+/** Signs in with an email (or a pre-email username) and password. Throws ApiError with the reason when refused. */
+export async function signIn(login: string, password: string): Promise<void> {
+  if (isWeb) {
+    await webRequest('/session/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: login, password }) });
+    return;
+  }
+  const response = await fetch(`${apiOrigin}/api/auth/token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'User-Agent': nativeUserAgent },
+    body: JSON.stringify({ grantType: 'password', username: login, password }),
+  });
+  if (!response.ok) {
+    throw new ApiError(response.status, await readEnvelope(response));
+  }
+  await tokenStore.save((await response.json()) as { accessToken: string; refreshToken: string });
+}
+
+/** Ends this device's session; identity stops honouring its refresh token. */
+export async function signOut(): Promise<void> {
+  if (isWeb) {
+    await webRequest('/session/logout', { method: 'POST' });
+    return;
+  }
+  const refreshToken = await tokenStore.getRefreshToken();
+  await tokenStore.clear();
+  if (refreshToken) {
+    await fetch(`${apiOrigin}/api/auth/revoke`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'User-Agent': nativeUserAgent },
+      body: JSON.stringify({ refreshToken }),
+    }).catch(() => undefined);
   }
 }
 

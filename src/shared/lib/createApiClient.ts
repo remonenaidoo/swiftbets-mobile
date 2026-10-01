@@ -57,6 +57,12 @@ export function createApiClient(dependencies: ApiClientDependencies) {
       throw new ApiError(response.status, envelope);
     }
 
-    return response.status === 204 ? (undefined as T) : ((await response.json()) as T);
+    return readBody<T>(response);
   };
+}
+
+/** A success body, or undefined when there is none (204, or a 202 that only acknowledges). */
+export async function readBody<T>(response: Response): Promise<T> {
+  const text = await response.text();
+  return (text ? JSON.parse(text) : undefined) as T;
 }
