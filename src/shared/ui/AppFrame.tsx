@@ -33,12 +33,12 @@ export function AppFrame({ children }: { children: ReactNode }) {
           <Text style={styles.brand} accessibilityRole="header">
             SWIFT<Text style={styles.brandAccent}>BETS</Text>
           </Text>
-          <View style={styles.nav} accessibilityRole="tablist">
+          <View style={styles.nav} role="navigation" aria-label="Main">
             {nav.map((item) => {
               const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
               return (
                 <Link key={item.href} href={item.href} asChild>
-                  <Pressable accessibilityRole="tab" accessibilityState={{ selected: active }} style={StyleSheet.flatten([styles.navItem, active && styles.navItemActive])}>
+                  <Pressable aria-current={active ? 'page' : undefined} style={StyleSheet.flatten([styles.navItem, active && styles.navItemActive])}>
                     <Text style={StyleSheet.flatten([styles.navText, active && styles.navTextActive])}>{item.label}</Text>
                   </Pressable>
                 </Link>

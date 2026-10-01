@@ -41,14 +41,14 @@ export function RegisterScreen() {
       <Field label="Email" value={form.email} onChangeText={(v) => set('email', v)} error={errors.email} autoCapitalize="none" autoComplete="email" inputMode="email" />
       <Field label={`Password (at least ${minimumPasswordLength} characters)`} value={form.password} onChangeText={(v) => set('password', v)} error={errors.password} secureTextEntry autoComplete="new-password" />
       <Field label="Date of birth (YYYY-MM-DD)" value={form.dateOfBirth} onChangeText={(v) => set('dateOfBirth', v)} error={errors.dateOfBirth} placeholder="1990-04-23" inputMode="numeric" />
-      <View style={styles.row} accessibilityRole="radiogroup" accessibilityLabel="Currency">
+      <View style={styles.row} role="radiogroup" aria-label="Currency">
         {currencies.map((currency) => (
-          <Pressable key={currency} accessibilityRole="radio" accessibilityState={{ checked: form.currency === currency }} onPress={() => set('currency', currency)} style={[styles.chip, form.currency === currency && styles.chipActive]}>
+          <Pressable key={currency} role="radio" aria-checked={form.currency === currency} onPress={() => set('currency', currency)} style={[styles.chip, form.currency === currency && styles.chipActive]}>
             <Text style={styles.chipText}>{currency}</Text>
           </Pressable>
         ))}
       </View>
-      <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: form.acceptedTerms }} onPress={() => set('acceptedTerms', !form.acceptedTerms)} style={styles.row}>
+      <Pressable role="checkbox" aria-checked={form.acceptedTerms} onPress={() => set('acceptedTerms', !form.acceptedTerms)} style={styles.row}>
         <View style={[styles.box, form.acceptedTerms && styles.boxChecked]} />
         <Text style={styles.terms}>I am 18 or older and accept the terms and the responsible gambling policy.</Text>
       </Pressable>
