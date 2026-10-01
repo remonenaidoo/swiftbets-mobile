@@ -2,7 +2,7 @@
 
 [![ci](https://github.com/remonenaidoo/swiftbets-mobile/actions/workflows/ci.yml/badge.svg)](https://github.com/remonenaidoo/swiftbets-mobile/actions/workflows/ci.yml)
 
-The SwiftBets customer app: fixtures, odds, betslip (singles and accumulators), place bet, my bets. React Native with Expo and expo-router; builds to a signed release APK.
+The SwiftBets customer app: accounts (register behind the 18+ age gate, confirm email, sign in, reset password), fixtures, odds, betslip (singles and accumulators), place bet, my bets. React Native with Expo and expo-router; builds to a signed release APK.
 
 ## Structure
 
