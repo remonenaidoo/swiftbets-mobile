@@ -1,5 +1,5 @@
 import { apiOrigin, isWeb, nativeUserAgent } from './config';
-import { createApiClient } from './createApiClient';
+import { createApiClient, readBody } from './createApiClient';
 import { ApiError, type ErrorEnvelopeShape } from './apiError';
 import { tokenStore } from './tokenStore';
 
@@ -21,7 +21,7 @@ async function webRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (!response.ok) {
     throw new ApiError(response.status, await readEnvelope(response));
   }
-  return response.status === 204 ? (undefined as T) : ((await response.json()) as T);
+  return readBody<T>(response);
 }
 
 async function readEnvelope(response: Response): Promise<ErrorEnvelopeShape | undefined> {
