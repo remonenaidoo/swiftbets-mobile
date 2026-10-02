@@ -5,6 +5,7 @@ import { useSession } from '../../../shared/lib/useSession';
 import { useLiveInvalidation } from '../../../shared/realtime/useLive';
 
 const ownDeltas = ['coupon-placed', 'coupon-rejected', 'coupon-settled', 'payout-completed'] as const;
+const balanceDeltas = [...ownDeltas, 'balance-changed'] as const;
 
 /** Open bets come from bet-history's open lookup; settled ones from the full list. */
 export function useMyBets(open: boolean) {
@@ -19,7 +20,7 @@ export function useMyBets(open: boolean) {
 }
 
 export function useBalance() {
-  useLiveInvalidation(ownDeltas, ['me', 'balance']);
+  useLiveInvalidation(balanceDeltas, ['me', 'balance']);
   const signedIn = useSession().data?.signedIn === true;
   return useQuery({ queryKey: ['me', 'balance'], queryFn: () => api<{ available: Money }>('/me/balance'), enabled: signedIn });
 }
