@@ -12,14 +12,14 @@ export interface PlacedCoupon {
 }
 
 /**
- * Places the slip as one coupon (a single for one selection, an accumulator for more). The idempotency key is kept
+ * Places the slip as one coupon: a single or accumulator, or a system bet whose stake is the unit stake times its lines. The idempotency key is kept
  * until the attempt succeeds, so a retried click can never place the same bet twice.
  */
 export function usePlaceCoupon() {
   const queryClient = useQueryClient();
   const key = useRef<string | null>(null);
   return useMutation({
-    mutationFn: ({ slip, stakeMinor }: { slip: SlipSelection[]; stakeMinor: number }) => {
+    mutationFn: ({ slip, stakeMinor, bet }: { slip: SlipSelection[]; stakeMinor: number; bet?: { key: string; folds: number[]; unitStakeMinor: number } }) => {
       key.current ??= newIdempotencyKey();
       return api<PlacedCoupon>('/coupons/', {
         method: 'POST',
@@ -27,7 +27,8 @@ export function usePlaceCoupon() {
         body: JSON.stringify({
           stake: stakeMinor,
           currency: 'ZAR',
-          legs: slip.map((s) => ({ fixtureId: s.fixtureId, marketId: s.marketId, selectionId: s.selectionId, odds: s.odds, offerVersion: s.offerVersion })),
+          legs: slip.map((s) => ({ fixtureId: s.fixtureId, marketId: s.marketId, selectionId: s.selectionId, odds: s.odds, offerVersion: s.offerVersion, banker: bet ? !!s.banker : false })),
+          ...(bet ? { bets: [{ name: bet.key, folds: bet.folds, unitStake: bet.unitStakeMinor }] } : {}),
         }),
       });
     },

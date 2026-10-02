@@ -13,10 +13,18 @@ export interface SlipSelection {
   /** Set when the live price moved after it was added; placing needs the punter to accept the new price first. */
   previousOdds?: number;
   suspended?: boolean;
+  /** In a system bet, a banker is in every line. */
+  banker?: boolean;
 }
 
 export const slipAtom = atom<SlipSelection[]>([]);
 export const stakeAtom = atom<string>('10');
+/** The chosen bet type key; an accumulator unless a system bet is picked. */
+export const betTypeAtom = atom<string>('accumulator');
+
+export function toggleBanker(slip: SlipSelection[], fixtureId: string): SlipSelection[] {
+  return slip.map((s) => (s.fixtureId === fixtureId ? { ...s, banker: !s.banker } : s));
+}
 
 /** One selection per fixture: an accumulator cannot carry two outcomes of the same match. */
 export function toggleSelection(slip: SlipSelection[], selection: SlipSelection): SlipSelection[] {
