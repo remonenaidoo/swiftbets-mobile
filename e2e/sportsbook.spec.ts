@@ -41,6 +41,15 @@ test('home leads with live football, the next matches and an honest casino shelf
   await page.screenshot({ path: `test-results/home-${test.info().project.name}.png`, fullPage: true });
 });
 
+test('the home ticker shows real recent wins with masked accounts', async ({ page }) => {
+  const gateway = await signedIn(page);
+  gateway.respond('GET', '/recent-wins', 200, [{ couponId: 'w1', account: '****a1b2', betType: 'accumulator', payout: { minorUnits: 21_000, currency: 'ZAR' }, paidAt: kickoff }]);
+  await page.goto('/');
+
+  await expect(page.getByLabel('Recent wins')).toBeVisible();
+  await expect(page.getByText('****a1b2 · Accumulator')).toBeVisible();
+});
+
 for (const path of ['/sports/soccer', '/fixtures/fx-1', '/casino', '/menu', '/promotions', '/my-bets']) {
   test(`${path} renders for a screenshot`, async ({ page }) => {
     await signedIn(page);

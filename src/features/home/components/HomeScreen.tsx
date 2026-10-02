@@ -13,6 +13,7 @@ import { GamePoster } from '../../casino/components/GamePoster';
 import { useSports } from '../../catalog/api/catalog';
 import { useFixtures } from '../../fixtures/api/fixtures';
 import { FixtureCard } from '../../fixtures/components/FixtureCard';
+import { WinnersTicker } from '../../wins/components/WinnersTicker';
 import { PromoCarousel } from './PromoCarousel';
 
 function useMinute() {
@@ -56,6 +57,8 @@ export function HomeScreen() {
             </Pressable>
           </Link>
         </View>
+
+        <WinnersTicker />
 
         <Section title="Next up" icon="sports/football" href="/sports/soccer" more="All football">
           {fixtures.isPending ? <ActivityIndicator color={colors.accent} /> : null}
