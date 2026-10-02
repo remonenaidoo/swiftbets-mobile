@@ -65,6 +65,14 @@ test('the lobby launches a game from the catalogue', async ({ page }) => {
   await expect(page.frameLocator('iframe').getByText('Sun Temple game')).toBeVisible();
 });
 
+test('a crafted play link never frames anything', async ({ page }) => {
+  await signedIn(page);
+  await page.goto('/casino/play?url=https://evil.example/login&name=Sun%20Temple');
+
+  await expect(page.getByText(/no longer valid/)).toBeVisible();
+  await expect(page.locator('iframe')).toHaveCount(0);
+});
+
 test('a self-excluded player is told why the game did not start', async ({ page }) => {
   const gateway = await signedIn(page);
   gateway.respond('GET', '/casino/lobby', 200, lobby);
