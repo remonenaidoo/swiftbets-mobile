@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { EmptyState } from '../../../shared/ui/EmptyState';
+import { Icon } from '../../../shared/ui/Icon';
 import { useIsWide } from '../../../shared/ui/Layout';
 import { colors, radius, spacing } from '../../../shared/ui/theme';
 import { useSports } from '../../catalog/api/catalog';
@@ -46,9 +47,12 @@ export function SportScreen({ sportId }: { sportId: string }) {
   return (
     <ScrollView contentContainerStyle={styles.page}>
       <View style={styles.titleRow}>
-        <Text style={styles.title} accessibilityRole="header">
-          ⚽ {competition || 'Football'}
-        </Text>
+        <View style={styles.titleLead}>
+          <Icon name="sports/football" size={34} />
+          <Text style={styles.title} accessibilityRole="header">
+            {competition || 'Football'}
+          </Text>
+        </View>
         {competition ? (
           <Pressable accessibilityRole="button" onPress={() => setCompetition(undefined)} style={styles.clear}>
             <Text style={styles.clearText}>All competitions ✕</Text>
@@ -115,6 +119,7 @@ export function SportScreen({ sportId }: { sportId: string }) {
 const styles = StyleSheet.create({
   page: { padding: spacing.md, gap: spacing.md, paddingBottom: 40 },
   titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+  titleLead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexShrink: 1 },
   title: { color: colors.text, fontSize: 24, fontWeight: '800', flexShrink: 1 },
   clear: { backgroundColor: colors.card, borderRadius: radius.pill, paddingVertical: 6, paddingHorizontal: 12 },
   clearText: { color: colors.text, fontSize: 12, fontWeight: '700' },

@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import type { IconName } from '../../../shared/ui/artwork';
+import { Icon } from '../../../shared/ui/Icon';
 import { useIsWide } from '../../../shared/ui/Layout';
 import { Section } from '../../../shared/ui/Section';
 import { colors, radius, spacing } from '../../../shared/ui/theme';
 import { comingSoonGames, type GameCard } from '../games';
 import { GamePoster } from './GamePoster';
 
-const shelves: { key: GameCard['category'] | 'all'; label: string; glyph: string }[] = [
-  { key: 'all', label: 'Lobby', glyph: '⭐' },
-  { key: 'slots', label: 'Slots', glyph: '🎰' },
-  { key: 'live', label: 'Live casino', glyph: '🃏' },
-  { key: 'crash', label: 'Crash', glyph: '🚀' },
+const shelves: { key: GameCard['category'] | 'all'; label: string; icon: IconName }[] = [
+  { key: 'all', label: 'Lobby', icon: 'casino/star' },
+  { key: 'slots', label: 'Slots', icon: 'casino/slots' },
+  { key: 'live', label: 'Live casino', icon: 'casino/live-dealer' },
+  { key: 'crash', label: 'Crash', icon: 'casino/crash' },
 ];
 
 /** The casino lobby's shape; games arrive with the casino service, so the shelves say so. */
@@ -25,9 +27,7 @@ export function CasinoScreen() {
       <View style={styles.bar} role="tablist">
         {shelves.map((s) => (
           <Pressable key={s.key} role="tab" aria-selected={shelf === s.key} onPress={() => setShelf(s.key)} style={[styles.cat, shelf === s.key && styles.catOn]}>
-            <Text style={styles.glyph} aria-hidden>
-              {s.glyph}
-            </Text>
+            <Icon name={s.icon} size={34} />
             <Text style={[styles.catText, shelf === s.key && styles.catTextOn]}>{s.label}</Text>
           </Pressable>
         ))}
@@ -37,7 +37,7 @@ export function CasinoScreen() {
         <Text style={styles.noticeBody}>Slots, live tables and crash games are being connected. Sports betting is live now.</Text>
       </View>
       {groups.map((g) => (
-        <Section key={g.key} title={g.label} glyph={g.glyph}>
+        <Section key={g.key} title={g.label} icon={g.icon}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.rail}>
             {comingSoonGames
               .filter((game) => game.category === g.key)
@@ -56,8 +56,7 @@ const styles = StyleSheet.create({
   bar: { flexDirection: 'row', gap: spacing.xs, flexWrap: 'wrap' },
   cat: { minWidth: 76, alignItems: 'center', paddingVertical: spacing.sm, paddingHorizontal: spacing.sm, borderRadius: radius.md, backgroundColor: colors.card },
   catOn: { backgroundColor: colors.accent },
-  glyph: { fontSize: 20, marginBottom: 3 },
-  catText: { color: colors.textMuted, fontSize: 11, fontWeight: '700' },
+  catText: { color: colors.textMuted, fontSize: 11, fontWeight: '700', marginTop: 3 },
   catTextOn: { color: '#ffffff' },
   notice: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.md, gap: 4, borderLeftWidth: 4, borderLeftColor: colors.gold },
   noticeTitle: { color: colors.text, fontWeight: '800', fontSize: 16 },
