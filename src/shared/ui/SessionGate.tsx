@@ -1,3 +1,4 @@
+import { brandName } from '../brand';
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -25,7 +26,7 @@ export function SessionGate({ children }: { children: ReactNode }) {
   if (session.isError) {
     return (
       <View style={styles.center}>
-        <Text style={styles.text}>Could not reach SwiftBets.</Text>
+        <Text style={styles.text}>Could not reach {brandName}.</Text>
         <Pressable accessibilityRole="button" onPress={() => void session.refetch()}>
           <Text style={styles.link}>Try again</Text>
         </Pressable>

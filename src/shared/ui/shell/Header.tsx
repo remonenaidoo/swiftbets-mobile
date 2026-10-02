@@ -5,6 +5,7 @@ import { useBalance } from '../../../features/my-bets/api/myBets';
 import { formatRand } from '../../lib/format';
 import { openWallet } from '../../lib/links';
 import { useSession } from '../../lib/useSession';
+import { brandId, brandName } from '../../brand';
 import { brand } from '../artwork';
 import { GetTheApp } from '../GetTheApp';
 import { useIsWide } from '../Layout';
@@ -12,8 +13,8 @@ import { colors, maxContentWidth, radius, spacing } from '../theme';
 
 export function Logo() {
   return (
-    <Link href="/" accessibilityLabel="SwiftBets home">
-      <Image source={brand.logo} style={styles.logoImage} resizeMode="contain" accessibilityLabel="SwiftBets" />
+    <Link href="/" accessibilityLabel={`${brandName} home`}>
+      {brandId === 'swiftbets' ? <Image source={brand.logo} style={styles.logoImage} resizeMode="contain" accessibilityLabel={brandName} /> : <Text style={styles.wordmark}>{brandName}</Text>}
     </Link>
   );
 }
@@ -61,6 +62,7 @@ export function Header() {
 }
 
 const styles = StyleSheet.create({
+  wordmark: { color: colors.text, fontSize: 20, fontWeight: '900', letterSpacing: 0.5 },
   bar: { backgroundColor: colors.surfaceRaised, borderBottomWidth: 1, borderBottomColor: colors.border, paddingBottom: spacing.sm, paddingHorizontal: spacing.md },
   inner: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, width: '100%', maxWidth: maxContentWidth, alignSelf: 'center', minHeight: 40 },
   grow: { flex: 1 },

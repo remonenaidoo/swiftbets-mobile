@@ -1,3 +1,4 @@
+import { pageTitle } from '../../src/shared/brand';
 import { useLocalSearchParams } from 'expo-router';
 import Head from 'expo-router/head';
 import { ScrollView } from 'react-native';
@@ -8,7 +9,7 @@ export default function Route() {
   return (
     <ScrollView>
       <Head>
-        <title>Confirm your email · SwiftBets</title>
+        <title>{pageTitle('Confirm your email')}</title>
       </Head>
       <VerifyEmailScreen token={token} />
     </ScrollView>

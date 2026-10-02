@@ -1,3 +1,4 @@
+import { brandName } from '../../../shared/brand';
 import { Link } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -59,7 +60,7 @@ export function MenuScreen() {
         </View>
       ) : (
         <View style={styles.account}>
-          <Text style={styles.hello}>Welcome to SwiftBets</Text>
+          <Text style={styles.hello}>Welcome to {brandName}</Text>
           <View style={styles.actions}>
             <Link href="/account/sign-in" asChild>
               <Pressable style={StyleSheet.flatten([styles.action, styles.withdraw])}>

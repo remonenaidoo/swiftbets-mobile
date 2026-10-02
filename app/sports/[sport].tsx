@@ -1,3 +1,4 @@
+import { pageTitle } from '../../src/shared/brand';
 import { useLocalSearchParams } from 'expo-router';
 import Head from 'expo-router/head';
 import { SportScreen } from '../../src/features/sports/components/SportScreen';
@@ -7,7 +8,7 @@ export default function SportRoute() {
   return (
     <>
       <Head>
-        <title>{sport === 'soccer' ? 'Football betting' : 'Sports'} · SwiftBets</title>
+        <title>{pageTitle(sport === 'soccer' ? 'Football betting' : 'Sports')}</title>
       </Head>
       <SportScreen sportId={sport ?? 'soccer'} />
     </>

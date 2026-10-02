@@ -5,6 +5,7 @@
   "dependencies": {
     "@expo/metro-runtime": "~57.0.16",
     "@microsoft/signalr": "^10.0.11",
+    "@swiftbets/design-tokens": "https://github.com/remonenaidoo/swiftbets-design-tokens/releases/download/v0.2.0/swiftbets-design-tokens-0.2.0.tgz",
     "@tanstack/react-query": "^5.104.0",
     "expo": "~57.0.26",
     "expo-constants": "~57.0.20",
@@ -50,6 +51,11 @@
     "testPathIgnorePatterns": [
       "/node_modules/",
       "/e2e/"
+    ],
+    "transformIgnorePatterns": [
+      "/node_modules/(?!(.pnpm|react-native|@react-native|@react-native-community|expo|@expo|@expo-google-fonts|react-navigation|@react-navigation|@sentry/react-native|native-base|standard-navigation|@swiftbets/design-tokens))",
+      "/node_modules/react-native-reanimated/plugin/",
+      "/node_modules/@react-native/babel-preset/"
     ]
   },
   "overrides": {

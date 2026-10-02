@@ -1,3 +1,4 @@
+import { pageTitle } from '../../src/shared/brand';
 import { router } from 'expo-router';
 import Head from 'expo-router/head';
 import { useAtomValue } from 'jotai';
@@ -15,7 +16,7 @@ export default function PlayRoute() {
   return (
     <View style={styles.page}>
       <Head>
-        <title>{name ?? 'Game'} · SwiftBets</title>
+        <title>{pageTitle(name ?? 'Game')}</title>
       </Head>
       <View style={styles.bar}>
         <Pressable accessibilityRole="button" onPress={() => router.replace('/casino')} style={styles.back}>

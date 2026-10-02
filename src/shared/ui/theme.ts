@@ -1,23 +1,27 @@
+import { brandTokens } from '../brand';
+
 // Slate surfaces with one blue accent; green moves money, red marks live, gold marks wins.
+const c = brandTokens.color;
+
 export const colors = {
-  surface: '#0e1621',
-  surfaceRaised: '#162231',
-  surfaceSunken: '#0a111a',
-  card: '#1d2c3e',
-  cardHigh: '#263850',
-  border: '#2a3d55',
-  text: '#eef3fa',
-  textMuted: '#8fa3bd',
-  accent: '#2563eb',
-  accentStrong: '#2563eb',
-  odds: '#5cc8ff',
-  positive: '#26d07c',
-  onPositive: '#04230f',
-  negative: '#ff3b5c',
-  live: '#ff3b5c',
-  warning: '#f5a524',
-  gold: '#ffc53d',
-  selected: '#2563eb',
+  surface: c.surface,
+  surfaceRaised: c.surfaceRaised,
+  surfaceSunken: c.surfaceSunken,
+  card: c.card,
+  cardHigh: c.cardHigh,
+  border: c.border,
+  text: c.text,
+  textMuted: c.textMuted,
+  accent: c.accentStrong,
+  accentStrong: c.accentStrong,
+  odds: c.odds,
+  positive: c.positive,
+  onPositive: c.onPositive,
+  negative: c.negative,
+  live: c.live,
+  warning: c.warning,
+  gold: c.gold,
+  selected: c.selected,
 } as const;
 
 export const spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 } as const;
