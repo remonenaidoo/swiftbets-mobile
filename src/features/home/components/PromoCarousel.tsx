@@ -34,7 +34,7 @@ export function PromoCarousel() {
       <CtaLink href={promo.href} label={promo.cta} style={styles.cta} textStyle={styles.ctaText} />
       <View style={styles.dots} role="tablist">
         {promos.map((p, i) => (
-          <Pressable key={p.key} role="tab" aria-selected={i === index} accessibilityLabel={`Promotion ${i + 1} of ${promos.length}`} onPress={() => setIndex(i)} hitSlop={8}>
+          <Pressable key={p.key} role="tab" aria-selected={i === index} accessibilityLabel={`Promotion ${i + 1} of ${promos.length}`} onPress={() => setIndex(i)} style={styles.dotTarget}>
             <View style={[styles.dot, i === index && styles.dotOn]} />
           </Pressable>
         ))}
@@ -75,7 +75,8 @@ const styles = StyleSheet.create({
   body: { color: '#d3dcf5', fontSize: 13, marginTop: 6, maxWidth: '55%', textShadowColor: '#000000aa', textShadowRadius: 6 },
   cta: { alignSelf: 'flex-start', backgroundColor: colors.accent, borderRadius: radius.md, paddingVertical: 9, paddingHorizontal: 16, marginTop: spacing.sm },
   ctaText: { color: '#ffffff', fontWeight: '800', fontSize: 14 },
-  dots: { position: 'absolute', bottom: 10, alignSelf: 'center', left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 6 },
+  dots: { position: 'absolute', bottom: 10, alignSelf: 'center', left: 0, right: 0, flexDirection: 'row', justifyContent: 'center' },
+  dotTarget: { minWidth: 24, minHeight: 24, alignItems: 'center', justifyContent: 'center' },
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#ffffff55' },
   dotOn: { width: 20, backgroundColor: '#ffffff' },
 });
