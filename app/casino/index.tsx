@@ -1,7 +1,7 @@
 import Head from 'expo-router/head';
-import { CasinoScreen } from '../src/features/casino/components/CasinoScreen';
+import { CasinoScreen } from '../../src/features/casino/components/CasinoScreen';
 
-export default function Route() {
+export default function CasinoRoute() {
   return (
     <>
       <Head>

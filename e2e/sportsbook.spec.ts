@@ -50,6 +50,33 @@ test('the home ticker shows real recent wins with masked accounts', async ({ pag
   await expect(page.getByText('****a1b2 · Accumulator')).toBeVisible();
 });
 
+const lobby = { categories: [{ key: 'slots', name: 'Slots', games: [{ gameId: 'sun-temple', name: 'Sun Temple', providerId: 'sim-seamless', category: 'slots', tag: 'EXCLUSIVE', minBet: { minorUnits: 100, currency: 'ZAR' } }] }] };
+
+test('the lobby launches a game from the catalogue', async ({ page }) => {
+  const gateway = await signedIn(page);
+  gateway.respond('GET', '/casino/lobby', 200, lobby);
+  gateway.respond('POST', '/casino/launch', 200, { sessionToken: 't', launchUrl: 'https://sim.example/play?session=t&game=sun-temple', expiresAt: kickoff });
+  await page.route('https://sim.example/**', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<h1>Sun Temple game</h1>' }));
+  await page.goto('/casino');
+
+  await page.getByRole('button', { name: 'Play Sun Temple' }).click();
+
+  await expect(page).toHaveURL(/\/casino\/play/);
+  await expect(page.frameLocator('iframe').getByText('Sun Temple game')).toBeVisible();
+});
+
+test('a self-excluded player is told why the game did not start', async ({ page }) => {
+  const gateway = await signedIn(page);
+  gateway.respond('GET', '/casino/lobby', 200, lobby);
+  gateway.respond('POST', '/casino/launch', 403, { status: 403, code: 'casino_restricted', title: 'Forbidden', correlationId: 'e2e' });
+  await page.goto('/casino');
+
+  await page.getByRole('button', { name: 'Play Sun Temple' }).click();
+
+  await expect(page.getByText(/self-exclusion you set/)).toBeVisible();
+  await expect(page).toHaveURL(/\/casino$/);
+});
+
 for (const path of ['/sports/soccer', '/fixtures/fx-1', '/casino', '/menu', '/promotions', '/my-bets']) {
   test(`${path} renders for a screenshot`, async ({ page }) => {
     await signedIn(page);
