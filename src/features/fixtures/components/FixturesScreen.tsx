@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useSetAtom } from 'jotai';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
@@ -11,7 +12,8 @@ import { applyFixture, slipAtom } from '../../betslip/state/betslip';
 import { useFixtures } from '../api/fixtures';
 import { FixtureCard } from './FixtureCard';
 
-export function FixturesScreen() {
+/** Open fixtures, optionally one competition's; the header slot carries the sport page's filters. */
+export function FixturesScreen({ title = 'Football', competition, header }: { title?: string; competition?: string; header?: React.ReactNode }) {
   const fixtures = useFixtures();
   const setSlip = useSetAtom(slipAtom);
   const wide = useIsWide();
@@ -37,10 +39,7 @@ export function FixturesScreen() {
     return <EmptyState title="Could not load matches" message="Check your connection and try again." />;
   }
 
-  const open = fixtures.data.filter((f) => f.status === 'scheduled');
-  if (open.length === 0) {
-    return <EmptyState title="No matches open" message="New fixtures open for betting every few minutes." />;
-  }
+  const open = fixtures.data.filter((f) => f.status === 'scheduled' && (!competition || f.competition === competition));
 
   return (
     <FlatList
@@ -54,16 +53,18 @@ export function FixturesScreen() {
       ListHeaderComponent={
         <View style={styles.heading}>
           <Text style={styles.title} accessibilityRole="header">
-            Football
+            {title}
           </Text>
           <Text style={styles.subtitle}>Live prices · tap a price to add it to your betslip</Text>
-          {wide ? null : (
+          {header}
+          {wide || header ? null : (
             <View style={styles.app}>
               <GetTheApp />
             </View>
           )}
         </View>
       }
+      ListEmptyComponent={<EmptyState title="No matches open" message="New fixtures open for betting every few minutes." />}
       renderItem={({ item }) => (
         <View style={wide ? styles.half : undefined}>
           <FixtureCard fixture={item} now={now} />

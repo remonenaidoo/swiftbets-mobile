@@ -1,5 +1,6 @@
 import { useQueries, useQueryClient } from '@tanstack/react-query';
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatOdds, formatRand } from '../../../shared/lib/format';
 import { api } from '../../../shared/lib/session';
 import type { Fixture, MyCoupon, MyCouponLeg } from '../../../shared/lib/types';
@@ -7,6 +8,7 @@ import { EmptyState } from '../../../shared/ui/EmptyState';
 import { colors, maxContentWidth, radius, spacing } from '../../../shared/ui/theme';
 import { fixturesKey } from '../../fixtures/api/fixtures';
 import { useSession } from '../../../shared/lib/useSession';
+import { CashoutPanel, canCashOut } from '../../cashout/components/CashoutPanel';
 import { useMyBets } from '../api/myBets';
 
 interface Tone {
@@ -23,6 +25,7 @@ const statusTone: Record<string, Tone> = {
   paid: { label: 'Paid', color: colors.positive },
   lost: { label: 'Lost', color: colors.textMuted },
   void: { label: 'Void', color: colors.warning },
+  cashedOut: { label: 'Cashed out', color: colors.positive },
 };
 
 function tone(coupon: MyCoupon): Tone {
@@ -43,7 +46,8 @@ function legLabel(leg: MyCouponLeg, fixture: Fixture | undefined): string {
 }
 
 export function MyBetsScreen() {
-  const bets = useMyBets();
+  const [tab, setTab] = useState<'open' | 'settled'>('open');
+  const bets = useMyBets(tab === 'open');
   const signedIn = useSession().data?.signedIn === true;
   const listed = useQueryClient().getQueryData<Fixture[]>(fixturesKey) ?? [];
   const legFixtureIds = [...new Set((bets.data ?? []).flatMap((c) => (c.legs ?? []).map((l) => l.fixtureId)))];
@@ -70,9 +74,6 @@ export function MyBetsScreen() {
   if (bets.isError) {
     return <EmptyState title="Could not load your bets" message="Check your connection and try again." />;
   }
-  if (bets.data.length === 0) {
-    return <EmptyState title="No bets yet" message="Your bets appear here the moment they are placed, and update live as they settle." />;
-  }
 
   return (
     <FlatList
@@ -80,9 +81,24 @@ export function MyBetsScreen() {
       keyExtractor={(c) => c.couponId}
       contentContainerStyle={styles.list}
       ListHeaderComponent={
-        <Text style={styles.title} accessibilityRole="header">
-          My bets
-        </Text>
+        <View style={styles.heading}>
+          <Text style={styles.title} accessibilityRole="header">
+            My bets
+          </Text>
+          <View style={styles.tabs} role="tablist">
+            {(['open', 'settled'] as const).map((t) => (
+              <Pressable key={t} role="tab" aria-selected={tab === t} onPress={() => setTab(t)} style={[styles.tab, tab === t && styles.tabActive]}>
+                <Text style={[styles.tabText, tab === t && styles.tabTextActive]}>{t === 'open' ? 'Open' : 'Settled'}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      }
+      ListEmptyComponent={
+        <EmptyState
+          title={tab === 'open' ? 'No open bets' : 'No settled bets yet'}
+          message={tab === 'open' ? 'Bets appear here the moment they are placed, and you can cash them out before they settle.' : 'Settled bets appear here, with what each one paid.'}
+        />
       }
       renderItem={({ item }) => {
         const t = tone(item);
@@ -90,7 +106,7 @@ export function MyBetsScreen() {
           <View style={styles.card}>
             <View style={styles.row}>
               <Text style={styles.type}>
-                {item.betType === 'accumulator' ? `Accumulator · ${item.legs?.length ?? 0} legs` : 'Single'} @ {formatOdds(item.totalOdds ?? 0)}
+                {item.betType === 'accumulator' ? `Accumulator · ${item.legs?.length ?? 0} legs` : item.betType === 'system' ? `System · ${item.legs?.length ?? 0} legs` : 'Single'} @ {formatOdds(item.totalOdds ?? 0)}
               </Text>
               <Text style={[styles.badge, { color: t.color, borderColor: t.color }]}>{t.label}</Text>
             </View>
@@ -109,6 +125,7 @@ export function MyBetsScreen() {
                     : `Returns ${formatRand(item.potentialPayout ?? 0, item.currency)}`}
               </Text>
             </View>
+            {canCashOut(item) ? <CashoutPanel coupon={item} /> : null}
           </View>
         );
       }}
@@ -119,7 +136,13 @@ export function MyBetsScreen() {
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { padding: spacing.md, gap: spacing.md, paddingBottom: 120, width: '100%', maxWidth: maxContentWidth, alignSelf: 'center' },
+  heading: { gap: spacing.sm },
   title: { color: '#ffffff', fontSize: 24, fontWeight: '700' },
+  tabs: { flexDirection: 'row', gap: spacing.xs },
+  tab: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: colors.border },
+  tabActive: { backgroundColor: colors.selected, borderColor: colors.accent },
+  tabText: { color: colors.textMuted, fontWeight: '600' },
+  tabTextActive: { color: '#ffffff' },
   card: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: 1, borderRadius: radius.lg, padding: spacing.md, gap: spacing.xs },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm },
   type: { color: colors.text, fontWeight: '600', flexShrink: 1 },

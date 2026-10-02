@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Betslip } from '../../features/betslip/components/Betslip';
 import { BetslipDock } from '../../features/betslip/components/BetslipDock';
 import { useSignOut } from '../../features/account/api/account';
+import { usePersistedSlip } from '../../features/betslip/state/usePersistedSlip';
 import { useBalance } from '../../features/my-bets/api/myBets';
 import { formatRand } from '../lib/format';
 import { useSession } from '../lib/useSession';
@@ -14,7 +15,8 @@ import { Toast } from './Toast';
 import { colors, maxContentWidth, radius, spacing } from './theme';
 
 const nav = [
-  { href: '/', label: 'Sports' },
+  { href: '/', label: 'Home' },
+  { href: '/sports/soccer', label: 'Football' },
   { href: '/my-bets', label: 'My bets' },
 ] as const;
 
@@ -25,15 +27,9 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const balance = useBalance();
   const signedIn = useSession().data?.signedIn === true;
   const signOut = useSignOut();
-
-  return (
-    <View style={styles.root}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <View style={styles.headerInner}>
-          <Text style={styles.brand} accessibilityRole="header">
-            SWIFT<Text style={styles.brandAccent}>BETS</Text>
-          </Text>
-          <View style={styles.nav} role="navigation" aria-label="Main">
+  usePersistedSlip();
+  const navBlock = (
+          <View style={[styles.nav, !wide && styles.navNarrow]} role="navigation" aria-label="Main">
             {nav.map((item) => {
               const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
               return (
@@ -45,6 +41,16 @@ export function AppFrame({ children }: { children: ReactNode }) {
               );
             })}
           </View>
+  );
+
+  return (
+    <View style={styles.root}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
+        <View style={styles.headerInner}>
+          <Text style={[styles.brand, !wide && styles.brandNarrow]} accessibilityRole="header">
+            SWIFT<Text style={styles.brandAccent}>BETS</Text>
+          </Text>
+          {wide ? navBlock : null}
           {wide ? <GetTheApp /> : null}
           {signedIn ? (
             <>
@@ -66,6 +72,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
               </Link>
             </View>
           )}
+          {wide ? null : navBlock}
         </View>
       </View>
 
@@ -90,6 +97,9 @@ const styles = StyleSheet.create({
   brand: { color: '#ffffff', fontSize: 20, fontWeight: '800', letterSpacing: 1 },
   brandAccent: { color: colors.accent },
   nav: { flexDirection: 'row', gap: spacing.xs, flex: 1 },
+  // On a phone the nav takes its own full-width row under the brand and balance.
+  navNarrow: { flexBasis: '100%', flex: 0 },
+  brandNarrow: { flex: 1 },
   navItem: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: radius.md },
   navItemActive: { backgroundColor: colors.surfaceRaised },
   navText: { color: colors.textMuted, fontWeight: '600' },

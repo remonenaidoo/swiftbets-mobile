@@ -38,7 +38,7 @@ export interface MyCouponLeg {
 export interface MyCoupon {
   couponId: string;
   status: string;
-  betType: 'single' | 'accumulator' | null;
+  betType: 'single' | 'accumulator' | 'system' | null;
   stake: number | null;
   currency: string;
   totalOdds: number | null;
@@ -49,6 +49,26 @@ export interface MyCoupon {
   payout: number | null;
   paidToDate: number;
   updatedAt: string;
+}
+
+export interface CatalogCompetition {
+  competitionId: string;
+  name: string;
+  upcomingFixtures: number;
+}
+
+export interface CatalogSport {
+  sportId: string;
+  name: string;
+  competitions: CatalogCompetition[];
+}
+
+export interface CashoutOffer {
+  couponId: string;
+  amount: number;
+  currency: string;
+  expiresAt: string;
+  quoteToken: string;
 }
 
 export interface LiveDelta<T = unknown> {
