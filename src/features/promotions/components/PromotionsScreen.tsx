@@ -19,7 +19,7 @@ export function PromotionsScreen() {
               <Text style={styles.kicker}>{p.kicker}</Text>
             </View>
             <View style={styles.body}>
-              <Text style={styles.cardTitle}>{p.title.replace('\n', ' ')}</Text>
+              <Text style={styles.cardTitle}>{p.title.replaceAll('\n', ' ')}</Text>
               <Text style={styles.text}>{p.body}</Text>
               <CtaLink href={p.href} label={p.cta} style={styles.cta} textStyle={styles.ctaText} />
             </View>
