@@ -1,13 +1,13 @@
 import Head from 'expo-router/head';
-import { FixturesScreen } from '../src/features/fixtures/components/FixturesScreen';
+import { HomeScreen } from '../src/features/home/components/HomeScreen';
 
-export default function SportsRoute() {
+export default function HomeRoute() {
   return (
     <>
       <Head>
-        <title>SwiftBets · Football betting</title>
+        <title>SwiftBets · Sports betting with live prices</title>
       </Head>
-      <FixturesScreen />
+      <HomeScreen />
     </>
   );
 }

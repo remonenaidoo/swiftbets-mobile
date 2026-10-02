@@ -1,4 +1,5 @@
 import { useAtom } from 'jotai';
+import { Link } from 'expo-router';
 import { memo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatKickoff, formatOdds } from '../../../shared/lib/format';
@@ -14,9 +15,9 @@ export const FixtureCard = memo(function FixtureCard({ fixture, now }: { fixture
   return (
     <View style={styles.card} accessibilityRole="summary" accessibilityLabel={fixtureName}>
       <View style={styles.header}>
-        <Text style={styles.teams} numberOfLines={1}>
+        <Link href={`/fixtures/${encodeURIComponent(fixture.fixtureId)}` as never} style={styles.teams} numberOfLines={1} accessibilityLabel={`${fixtureName}, all markets`}>
           {fixture.homeTeam} <Text style={styles.vs}>v</Text> {fixture.awayTeam}
-        </Text>
+        </Link>
         <Text style={styles.kickoff}>{formatKickoff(fixture.kickoffAt, now)}</Text>
       </View>
       <Text style={styles.competition}>{fixture.competition}</Text>
