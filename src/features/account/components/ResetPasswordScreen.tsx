@@ -43,4 +43,4 @@ export function ResetPasswordScreen({ token }: { token: string | undefined }) {
   );
 }
 
-const styles = StyleSheet.create({ link: { color: colors.accent, fontWeight: '600' } });
+const styles = StyleSheet.create({ link: { color: colors.odds, fontWeight: '600' } });

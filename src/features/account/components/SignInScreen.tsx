@@ -36,6 +36,6 @@ export function SignInScreen() {
 
 const styles = StyleSheet.create({
   links: { flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', gap: spacing.sm },
-  link: { color: colors.accent, fontWeight: '600' },
+  link: { color: colors.odds, fontWeight: '600' },
   small: { color: colors.textMuted, fontSize: 12 },
 });

@@ -1,27 +1,22 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'expo-router';
 import { useSetAtom } from 'jotai';
-import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ApiError } from '../../../shared/lib/apiError';
 import { api } from '../../../shared/lib/session';
 import type { Fixture } from '../../../shared/lib/types';
 import { useDeltas } from '../../../shared/realtime/useLive';
 import { EmptyState } from '../../../shared/ui/EmptyState';
-import { colors, spacing } from '../../../shared/ui/theme';
+import { colors, radius, spacing } from '../../../shared/ui/theme';
 import { applyFixture, slipAtom } from '../../betslip/state/betslip';
-import { FixtureCard } from './FixtureCard';
+import { Crest, OddsRow } from './FixtureCard';
+import { marketLabel } from './marketLabel';
 
 /** One fixture with every market, kept live: each fixture-changed delta for it replaces the snapshot if newer. */
 export function FixtureScreen({ fixtureId }: { fixtureId: string }) {
   const queryClient = useQueryClient();
   const setSlip = useSetAtom(slipAtom);
   const key = ['fixture', fixtureId];
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 30_000);
-    return () => clearInterval(timer);
-  }, []);
   const fixture = useQuery({ queryKey: key, queryFn: () => api<Fixture>(`/fixtures/${encodeURIComponent(fixtureId)}`) });
 
   useDeltas(['fixture-changed'], (delta) => {
@@ -50,26 +45,51 @@ export function FixtureScreen({ fixtureId }: { fixtureId: string }) {
 
   const f = fixture.data;
   const live = f.status === 'inPlay';
+  const kickoff = new Date(f.kickoffAt).toLocaleString('en-ZA', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false });
   return (
     <ScrollView contentContainerStyle={styles.page}>
-      <Link href="/sports/soccer" style={styles.back}>
-        ← {f.competition}
+      <Link href={`/sports/soccer?competition=${encodeURIComponent(f.competition)}` as never} style={styles.back}>
+        ‹ {f.competition}
       </Link>
-      <Text style={styles.title} accessibilityRole="header">
-        {f.homeTeam} v {f.awayTeam}
-      </Text>
-      <Text style={styles.meta}>
-        {live ? 'In play' : f.status === 'scheduled' ? `Kick-off ${new Date(f.kickoffAt).toLocaleString('en-ZA', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })}` : 'Finished'}
-      </Text>
-      <FixtureCard fixture={f} now={now} />
+      <View style={styles.hero}>
+        <View style={styles.side}>
+          <Crest name={f.homeTeam} size={44} />
+          <Text style={styles.team} numberOfLines={2}>
+            {f.homeTeam}
+          </Text>
+        </View>
+        <View style={styles.centre}>
+          {live ? <Text style={styles.live}>LIVE</Text> : <Text style={styles.vs}>v</Text>}
+          <Text style={styles.meta}>{f.status === 'scheduled' ? kickoff : live ? 'In play' : 'Finished'}</Text>
+        </View>
+        <View style={styles.side}>
+          <Crest name={f.awayTeam} size={44} />
+          <Text style={styles.team} numberOfLines={2}>
+            {f.awayTeam}
+          </Text>
+        </View>
+      </View>
+      {f.markets.map((market) => (
+        <View key={market.marketId} style={styles.market}>
+          <Text style={styles.marketName}>{marketLabel(market.type)}</Text>
+          <OddsRow fixture={f} market={market} />
+        </View>
+      ))}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  page: { padding: spacing.md, gap: spacing.sm, paddingBottom: 140, width: '100%', maxWidth: 820, alignSelf: 'center' },
-  back: { color: colors.accent, fontWeight: '600' },
-  title: { color: '#ffffff', fontSize: 26, fontWeight: '800' },
-  meta: { color: colors.textMuted, marginBottom: spacing.sm },
+  page: { padding: spacing.md, gap: spacing.md, paddingBottom: 40, width: '100%', maxWidth: 820, alignSelf: 'center' },
+  back: { color: colors.odds, fontWeight: '700' },
+  hero: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg - 4 },
+  side: { flex: 1, alignItems: 'center', gap: spacing.sm },
+  team: { color: colors.text, fontWeight: '800', fontSize: 16, textAlign: 'center' },
+  centre: { alignItems: 'center', gap: 4, paddingHorizontal: spacing.sm },
+  vs: { color: colors.textMuted, fontSize: 22, fontWeight: '800' },
+  live: { backgroundColor: colors.live, color: '#ffffff', fontWeight: '900', fontSize: 12, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
+  meta: { color: colors.textMuted, fontSize: 12, textAlign: 'center' },
+  market: { backgroundColor: colors.surfaceRaised, borderRadius: radius.lg, padding: spacing.md - 2, gap: spacing.sm + 2 },
+  marketName: { color: colors.text, fontWeight: '800', fontSize: 15 },
 });
