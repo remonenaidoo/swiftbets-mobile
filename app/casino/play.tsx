@@ -1,13 +1,17 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import Head from 'expo-router/head';
+import { useAtomValue } from 'jotai';
 import { createElement } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { launchedGameAtom } from '../../src/features/casino/state/launch';
 import { colors, radius, spacing } from '../../src/shared/ui/theme';
 
-/** Web: the provider's game page in a frame under a slim bar with a way back to the lobby. */
+/** Web: the game page the lobby just launched, in a sandboxed frame under a slim bar back to the lobby. */
 export default function PlayRoute() {
-  const { url, name } = useLocalSearchParams<{ url?: string; name?: string }>();
-  const safe = typeof url === 'string' && /^https?:\/\//.test(url) ? url : null;
+  // Only a session this tab launched from the lobby is shown; nothing from the address bar is ever framed.
+  const launched = useAtomValue(launchedGameAtom);
+  const safe = launched && /^https?:\/\//.test(launched.url) ? launched.url : null;
+  const name = launched?.name;
   return (
     <View style={styles.page}>
       <Head>
@@ -22,7 +26,7 @@ export default function PlayRoute() {
         </Text>
       </View>
       {safe ? (
-        createElement('iframe', { src: safe, title: name ?? 'Game', style: { flex: 1, width: '100%', height: '100%', border: 0, background: colors.surface }, allow: 'fullscreen' })
+        createElement('iframe', { src: safe, title: name ?? 'Game', style: { flex: 1, width: '100%', height: '100%', border: 0, background: colors.surface }, allow: 'fullscreen', sandbox: 'allow-scripts allow-same-origin allow-forms', referrerPolicy: 'no-referrer' })
       ) : (
         <Text style={styles.missing}>This game session is no longer valid. Go back to the lobby and press Play again.</Text>
       )}

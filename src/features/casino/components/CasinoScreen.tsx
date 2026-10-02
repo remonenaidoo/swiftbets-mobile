@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
+import { useSetAtom } from 'jotai';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ApiError } from '../../../shared/lib/apiError';
@@ -12,6 +13,7 @@ import { Section } from '../../../shared/ui/Section';
 import { colors, radius, spacing } from '../../../shared/ui/theme';
 import { launchRefusal, useLaunch, useLobby, type LobbyGame } from '../api/casino';
 import { comingSoonGames } from '../games';
+import { launchedGameAtom } from '../state/launch';
 import { GamePoster } from './GamePoster';
 
 const shelves: { key: string; label: string; icon: IconName }[] = [
@@ -27,6 +29,7 @@ export function CasinoScreen() {
   const signedIn = useSession().data?.signedIn === true;
   const lobby = useLobby();
   const launch = useLaunch();
+  const setLaunched = useSetAtom(launchedGameAtom);
   const [shelf, setShelf] = useState('all');
   const width = wide ? 160 : 118;
 
@@ -40,7 +43,8 @@ export function CasinoScreen() {
       {
         onSuccess: (session) => {
           if (isWeb) {
-            router.push({ pathname: '/casino/play', params: { url: session.launchUrl, name: game.name } });
+            setLaunched({ url: session.launchUrl, name: game.name });
+            router.push('/casino/play');
           } else {
             void WebBrowser.openBrowserAsync(session.launchUrl);
           }
