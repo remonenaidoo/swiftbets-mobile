@@ -1,0 +1,7 @@
+[
+  {
+    "id": "GHSA-86w9-cpqp-85rv",
+    "reason": "node-forge RSA signature check, reached only through @expo/code-signing-certificates in the Expo CLI at build time; nothing in the web bundle or APK verifies signatures with it, and no patched node-forge exists yet (1.4.0 is latest)",
+    "expires": "2026-11-02"
+  }
+]
