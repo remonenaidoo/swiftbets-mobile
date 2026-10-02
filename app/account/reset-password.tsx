@@ -1,3 +1,4 @@
+import { pageTitle } from '../../src/shared/brand';
 import { useLocalSearchParams } from 'expo-router';
 import Head from 'expo-router/head';
 import { ScrollView } from 'react-native';
@@ -8,7 +9,7 @@ export default function Route() {
   return (
     <ScrollView>
       <Head>
-        <title>Choose a new password · SwiftBets</title>
+        <title>{pageTitle('Choose a new password')}</title>
       </Head>
       <ResetPasswordScreen token={token} />
     </ScrollView>

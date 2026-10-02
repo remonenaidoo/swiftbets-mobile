@@ -1,3 +1,4 @@
+import { brandName } from '../../../shared/brand';
 import { Link } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -82,7 +83,7 @@ export function HomeScreen() {
         </Section>
 
         <Text style={styles.legal}>
-          SwiftBets is a demonstration platform: no real money is wagered. 18+ only. Gambling can be addictive; play responsibly. Help: South African Responsible Gambling Foundation 0800 006 008.
+          {brandName} is a demonstration platform: no real money is wagered. 18+ only. Gambling can be addictive; play responsibly. Help: South African Responsible Gambling Foundation 0800 006 008.
         </Text>
       </View>
     </ScrollView>

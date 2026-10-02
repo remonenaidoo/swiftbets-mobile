@@ -97,7 +97,7 @@ for (const path of ['/sports/soccer', '/fixtures/fx-1', '/casino', '/menu', '/pr
 test('a pick survives a reload', async ({ page }) => {
   await signedIn(page);
   await page.goto('/sports/soccer');
-  await page.getByRole('button', { name: 'Arsenal at 2.10' }).first().click();
+  await page.getByRole('button', { name: 'Arsenal 2.10' }).first().click();
 
   await page.reload();
 

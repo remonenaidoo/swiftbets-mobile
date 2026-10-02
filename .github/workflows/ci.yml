@@ -11,6 +11,21 @@ permissions:
   contents: read
 
 jobs:
+  # E6: each brand's web export stays inside its JavaScript budget.
+  budgets:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        brand: [swiftbets, swiftplay]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx expo export --platform web --output-dir dist
+        env: { EXPO_PUBLIC_BRAND: "${{ matrix.brand }}" }
+      - run: node scripts/bundle-budget.mjs dist 400
+
   node:
     uses: remonenaidoo/swiftbets-platform/.github/workflows/node.yml@main
     with:

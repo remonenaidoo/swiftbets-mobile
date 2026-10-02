@@ -33,7 +33,7 @@ export function OddsRow({ fixture, market }: { fixture: Fixture; market: Market 
             disabled={!open}
             accessibilityRole="button"
             accessibilityState={{ selected: picked, disabled: !open }}
-            accessibilityLabel={`${selection.name} at ${formatOdds(selection.odds)}`}
+            accessibilityLabel={`${selection.name} ${open ? formatOdds(selection.odds) : '–'}`}
             onPress={() =>
               setSlip((current) =>
                 toggleSelection(current, {

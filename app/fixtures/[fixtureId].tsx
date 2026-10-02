@@ -1,3 +1,4 @@
+import { pageTitle } from '../../src/shared/brand';
 import { useLocalSearchParams } from 'expo-router';
 import Head from 'expo-router/head';
 import { FixtureScreen } from '../../src/features/fixtures/components/FixtureScreen';
@@ -7,7 +8,7 @@ export default function FixtureRoute() {
   return (
     <>
       <Head>
-        <title>Match betting · SwiftBets</title>
+        <title>{pageTitle('Match betting')}</title>
       </Head>
       <FixtureScreen fixtureId={fixtureId ?? ''} />
     </>
