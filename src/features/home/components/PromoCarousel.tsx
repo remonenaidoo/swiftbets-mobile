@@ -16,11 +16,12 @@ export function PromoCarousel() {
   }, []);
   const promo = promos[index] ?? promos[0]!;
   const height = wide ? 260 : 180;
+  const [width, setWidth] = useState(0);
 
   return (
-    <View style={[styles.slide, { height, backgroundColor: promo.tint[0] }]}>
+    <View style={[styles.slide, { height, backgroundColor: promo.tint[0] }]} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
       {/* The banner's artwork sits on its right; anchoring it there keeps it in view at any width. */}
-      <Image source={banners[promo.banner]} style={[styles.banner, { height, width: height * 8.33 }]} resizeMode="cover" aria-hidden />
+      <Image source={banners[promo.banner]} style={[styles.banner, bannerFrame(width, height)]} resizeMode="cover" aria-hidden />
       {/* A stepped fade from the left keeps the text legible over busy artwork. */}
       {scrim.map((step) => (
         <View key={step.width} style={[styles.scrim, { width: step.width, opacity: step.opacity }]} />
@@ -42,6 +43,13 @@ export function PromoCarousel() {
   );
 }
 
+/** Banners are 8.33:1 with their subject about 62% across; put that point 72% across the slide, beside the text. */
+export function bannerFrame(slideWidth: number, height: number) {
+  const width = height * 8.33;
+  const left = Math.min(0, Math.max(slideWidth - width, slideWidth * 0.72 - width * 0.62));
+  return { height, width, left };
+}
+
 const scrim = [
   { width: '84%', opacity: 0.085 },
   { width: '80%', opacity: 0.085 },
@@ -60,7 +68,7 @@ const scrim = [
 const styles = StyleSheet.create({
   scrim: { position: 'absolute', left: 0, top: 0, bottom: 0, backgroundColor: '#06102a' },
   slide: { borderRadius: radius.lg, padding: spacing.lg - 4, overflow: 'hidden', justifyContent: 'center' },
-  banner: { position: 'absolute', right: 0, top: 0 },
+  banner: { position: 'absolute', top: 0 },
   kicker: { color: '#9fc0ff', fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
   title: { color: '#ffffff', fontSize: 24, lineHeight: 27, fontWeight: '900', marginTop: 4, maxWidth: '62%', textShadowColor: '#000000aa', textShadowRadius: 8 },
   titleWide: { fontSize: 38, lineHeight: 42 },
