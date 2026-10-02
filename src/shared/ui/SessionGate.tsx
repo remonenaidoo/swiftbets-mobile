@@ -38,5 +38,5 @@ export function SessionGate({ children }: { children: ReactNode }) {
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm, backgroundColor: colors.surface },
   text: { color: colors.text },
-  link: { color: colors.accent, fontWeight: '600' },
+  link: { color: colors.odds, fontWeight: '600' },
 });

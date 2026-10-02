@@ -70,5 +70,5 @@ const styles = StyleSheet.create({
   box: { width: 20, height: 20, borderRadius: radius.sm, borderWidth: 2, borderColor: colors.border },
   boxChecked: { backgroundColor: colors.accent, borderColor: colors.accent },
   terms: { color: colors.text, flex: 1, fontSize: 13 },
-  link: { color: colors.accent, fontWeight: '600' },
+  link: { color: colors.odds, fontWeight: '600' },
 });

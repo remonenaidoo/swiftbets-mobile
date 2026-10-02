@@ -1,23 +1,37 @@
+// Slate surfaces with one blue accent; green moves money, red marks live, gold marks wins.
 export const colors = {
-  surface: '#0b1220',
-  surfaceRaised: '#121b2e',
-  surfaceSunken: '#070c16',
-  border: '#22304d',
-  text: '#e6ecf5',
-  textMuted: '#93a1b8',
-  accent: '#3b82f6',
+  surface: '#0e1621',
+  surfaceRaised: '#162231',
+  surfaceSunken: '#0a111a',
+  card: '#1d2c3e',
+  cardHigh: '#263850',
+  border: '#2a3d55',
+  text: '#eef3fa',
+  textMuted: '#8fa3bd',
+  accent: '#2563eb',
   accentStrong: '#2563eb',
-  positive: '#22c55e',
-  negative: '#ef4444',
-  warning: '#f59e0b',
-  selected: '#1d3b6e',
+  odds: '#5cc8ff',
+  positive: '#26d07c',
+  onPositive: '#04230f',
+  negative: '#ff3b5c',
+  live: '#ff3b5c',
+  warning: '#f5a524',
+  gold: '#ffc53d',
+  selected: '#2563eb',
 } as const;
 
 export const spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 } as const;
 
-export const radius = { sm: 6, md: 10, lg: 14 } as const;
+export const radius = { sm: 8, md: 12, lg: 16, pill: 999 } as const;
 
-/** Wide screens get the betslip as a sidebar; narrow ones get a bottom bar and sheet. */
+export const type = {
+  title: { fontSize: 24, fontWeight: '800' as const, color: colors.text },
+  section: { fontSize: 18, fontWeight: '800' as const, color: colors.text },
+  body: { fontSize: 14, color: colors.text },
+  small: { fontSize: 12, color: colors.textMuted },
+};
+
+/** Wide screens get a left menu and the betslip as a sidebar; narrow ones a bottom bar and sheet. */
 export const wideBreakpoint = 1024;
 
-export const maxContentWidth = 1280;
+export const maxContentWidth = 1440;

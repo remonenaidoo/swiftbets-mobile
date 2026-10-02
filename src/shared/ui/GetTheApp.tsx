@@ -17,5 +17,5 @@ export function GetTheApp() {
 
 const styles = StyleSheet.create({
   button: { borderWidth: 1, borderColor: colors.accent, borderRadius: radius.md, paddingVertical: 6, paddingHorizontal: 10 },
-  text: { color: colors.accent, fontWeight: '600', fontSize: 13 },
+  text: { color: colors.odds, fontWeight: '600', fontSize: 13 },
 });

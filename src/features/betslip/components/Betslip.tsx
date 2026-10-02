@@ -123,7 +123,7 @@ export function Betslip({ onPlaced }: { onPlaced?: () => void }) {
           />
           <View style={styles.quick}>
             {quickStakes.map((amount) => (
-              <Pressable key={amount} accessibilityRole="button" onPress={() => setStake(String(amount))} style={styles.chip}>
+              <Pressable key={amount} accessibilityRole="button" aria-pressed={stake === String(amount)} onPress={() => setStake(String(amount))} style={[styles.chip, stake === String(amount) && styles.chipOn]}>
                 <Text style={styles.chipText}>R{amount}</Text>
               </Pressable>
             ))}
@@ -151,8 +151,8 @@ export function Betslip({ onPlaced }: { onPlaced?: () => void }) {
               <Text style={styles.buttonText}>Accept new prices</Text>
             </Pressable>
           ) : (
-            <Pressable accessibilityRole="button" disabled={!canPlace} onPress={submit} style={[styles.button, !canPlace && styles.buttonDisabled]}>
-              <Text style={styles.buttonText}>{place.isPending ? 'Placing…' : `Place bet ${stakeMinor >= 100 ? formatRand(stakeMinor) : ''}`}</Text>
+            <Pressable accessibilityRole="button" disabled={!canPlace} onPress={submit} style={[styles.button, styles.buttonPlace, !canPlace && styles.buttonDisabled]}>
+              <Text style={[styles.buttonText, styles.buttonPlaceText]}>{place.isPending ? 'Placing…' : `Place bet ${stakeMinor >= 100 ? formatRand(stakeMinor) : ''}`}</Text>
             </Pressable>
           )}
           {stakeMinor > 0 && stakeMinor < 100 ? <Text style={styles.muted}>Minimum stake is R1.</Text> : null}
@@ -165,33 +165,36 @@ export function Betslip({ onPlaced }: { onPlaced?: () => void }) {
 const styles = StyleSheet.create({
   panel: { gap: spacing.sm, padding: spacing.md },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  title: { color: '#ffffff', fontSize: 18, fontWeight: '700' },
-  link: { color: colors.accent, fontSize: 14 },
+  title: { color: colors.text, fontSize: 18, fontWeight: '800' },
+  link: { color: colors.textMuted, fontSize: 13, fontWeight: '600' },
   empty: { color: colors.textMuted, fontSize: 14, lineHeight: 20 },
-  success: { color: colors.positive, fontSize: 14, fontWeight: '600' },
+  success: { color: colors.positive, fontSize: 14, fontWeight: '700' },
   legs: { maxHeight: 320 },
-  leg: { flexDirection: 'row', gap: spacing.sm, padding: spacing.sm, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceSunken },
-  legClosed: { borderColor: colors.negative },
-  legSelection: { color: colors.text, fontWeight: '600', fontSize: 15 },
+  leg: { flexDirection: 'row', gap: spacing.sm, padding: spacing.md - 4, borderRadius: radius.md, backgroundColor: colors.card },
+  legClosed: { borderWidth: 1, borderColor: colors.negative },
+  legSelection: { color: colors.text, fontWeight: '700', fontSize: 15 },
   legMeta: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
-  legOdds: { color: colors.text, fontWeight: '700', fontSize: 16, fontVariant: ['tabular-nums'] },
+  legOdds: { color: colors.odds, fontWeight: '800', fontSize: 16, fontVariant: ['tabular-nums'] },
   movedOdds: { color: colors.warning },
   oldOdds: { color: colors.textMuted, fontSize: 12, textDecorationLine: 'line-through' },
   remove: { color: colors.textMuted, fontSize: 12, marginTop: 4 },
   warn: { color: colors.negative, fontSize: 12, marginTop: 2 },
   summary: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  betType: { color: colors.text, fontWeight: '600' },
-  totalOdds: { color: colors.text, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  betType: { color: colors.text, fontWeight: '700' },
+  totalOdds: { color: colors.odds, fontWeight: '800', fontVariant: ['tabular-nums'] },
   label: { color: colors.textMuted, fontSize: 13, marginTop: spacing.xs },
-  input: { color: colors.text, fontSize: 18, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, backgroundColor: colors.surfaceSunken },
-  quick: { flexDirection: 'row', gap: spacing.sm },
-  chip: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999, borderWidth: 1, borderColor: colors.border },
-  chipText: { color: colors.text, fontSize: 13 },
+  input: { color: colors.text, fontSize: 18, fontWeight: '700', borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, backgroundColor: colors.surfaceSunken },
+  quick: { flexDirection: 'row', gap: spacing.xs },
+  chip: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: radius.sm, backgroundColor: colors.card, borderWidth: 2, borderColor: 'transparent' },
+  chipOn: { borderColor: colors.accent },
+  chipText: { color: colors.text, fontSize: 13, fontWeight: '800' },
   muted: { color: colors.textMuted, fontSize: 13 },
-  payout: { color: colors.positive, fontWeight: '700', fontSize: 18, fontVariant: ['tabular-nums'] },
+  payout: { color: colors.positive, fontWeight: '800', fontSize: 18, fontVariant: ['tabular-nums'] },
   error: { color: colors.negative, fontSize: 13 },
-  button: { backgroundColor: colors.accentStrong, borderRadius: radius.md, paddingVertical: 14, alignItems: 'center', marginTop: spacing.xs },
-  buttonWarn: { backgroundColor: '#b45309' },
-  buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: '#ffffff', fontWeight: '700', fontSize: 16 },
+  button: { backgroundColor: colors.accent, borderRadius: radius.md, paddingVertical: 15, alignItems: 'center', marginTop: spacing.xs },
+  buttonPlace: { backgroundColor: colors.positive },
+  buttonPlaceText: { color: colors.onPositive },
+  buttonWarn: { backgroundColor: colors.warning },
+  buttonDisabled: { opacity: 0.45 },
+  buttonText: { color: '#ffffff', fontWeight: '900', fontSize: 16 },
 });

@@ -31,15 +31,24 @@ async function signedIn(page: Page): Promise<Gateway> {
   return gateway;
 }
 
-test('home leads with live football, honest coming-soon tiles and the next matches', async ({ page }) => {
+test('home leads with live football, the next matches and an honest casino shelf', async ({ page }) => {
   await signedIn(page);
   await page.goto('/');
 
-  await expect(page.getByRole('link', { name: 'Football: Live prices now' })).toBeVisible();
-  await expect(page.getByLabel('Slots: Coming soon')).toBeVisible();
-  await expect(page.getByText('Arsenal v Chelsea').first()).toBeVisible();
+  await expect(page.getByText('Next up')).toBeVisible();
+  await expect(page.getByLabel('Arsenal v Chelsea', { exact: true }).first()).toBeVisible();
+  await expect(page.getByLabel('Sun Temple, coming soon')).toBeVisible();
   await page.screenshot({ path: `test-results/home-${test.info().project.name}.png`, fullPage: true });
 });
+
+for (const path of ['/sports/soccer', '/fixtures/fx-1', '/casino', '/menu', '/promotions', '/my-bets']) {
+  test(`${path} renders for a screenshot`, async ({ page }) => {
+    await signedIn(page);
+    await page.goto(path);
+    await page.waitForTimeout(800);
+    await page.screenshot({ path: `test-results/screen${path.replace(/\//g, '-')}-${test.info().project.name}.png`, fullPage: true });
+  });
+}
 
 test('a pick survives a reload', async ({ page }) => {
   await signedIn(page);

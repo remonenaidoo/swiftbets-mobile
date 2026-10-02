@@ -5,11 +5,20 @@ import { formatOdds, formatRand } from '../../../shared/lib/format';
 import { api } from '../../../shared/lib/session';
 import type { Fixture, MyCoupon, MyCouponLeg } from '../../../shared/lib/types';
 import { EmptyState } from '../../../shared/ui/EmptyState';
-import { colors, maxContentWidth, radius, spacing } from '../../../shared/ui/theme';
+import { colors, radius, spacing } from '../../../shared/ui/theme';
 import { fixturesKey } from '../../fixtures/api/fixtures';
 import { useSession } from '../../../shared/lib/useSession';
 import { CashoutPanel, canCashOut } from '../../cashout/components/CashoutPanel';
 import { useMyBets } from '../api/myBets';
+
+type Tab = 'open' | 'won' | 'lost' | 'all';
+
+const tabs: { key: Tab; label: string }[] = [
+  { key: 'open', label: 'Open' },
+  { key: 'won', label: 'Won' },
+  { key: 'lost', label: 'Lost' },
+  { key: 'all', label: 'All' },
+];
 
 interface Tone {
   label: string;
@@ -19,8 +28,8 @@ interface Tone {
 const paidTone: Tone = { label: 'Paid', color: colors.positive };
 
 const statusTone: Record<string, Tone> = {
-  open: { label: 'Open', color: colors.accent },
-  placed: { label: 'Open', color: colors.accent },
+  open: { label: 'Open', color: colors.odds },
+  placed: { label: 'Open', color: colors.odds },
   won: { label: 'Won', color: colors.positive },
   paid: { label: 'Paid', color: colors.positive },
   lost: { label: 'Lost', color: colors.textMuted },
@@ -46,8 +55,9 @@ function legLabel(leg: MyCouponLeg, fixture: Fixture | undefined): string {
 }
 
 export function MyBetsScreen() {
-  const [tab, setTab] = useState<'open' | 'settled'>('open');
+  const [tab, setTab] = useState<Tab>('open');
   const bets = useMyBets(tab === 'open');
+  const shown = (bets.data ?? []).filter((c) => tab === 'open' || tab === 'all' || (tab === 'won' ? c.status === 'won' || c.status === 'cashedOut' || c.paidToDate > 0 : c.status === 'lost'));
   const signedIn = useSession().data?.signedIn === true;
   const listed = useQueryClient().getQueryData<Fixture[]>(fixturesKey) ?? [];
   const legFixtureIds = [...new Set((bets.data ?? []).flatMap((c) => (c.legs ?? []).map((l) => l.fixtureId)))];
@@ -77,7 +87,7 @@ export function MyBetsScreen() {
 
   return (
     <FlatList
-      data={bets.data}
+      data={shown}
       keyExtractor={(c) => c.couponId}
       contentContainerStyle={styles.list}
       ListHeaderComponent={
@@ -86,9 +96,9 @@ export function MyBetsScreen() {
             My bets
           </Text>
           <View style={styles.tabs} role="tablist">
-            {(['open', 'settled'] as const).map((t) => (
-              <Pressable key={t} role="tab" aria-selected={tab === t} onPress={() => setTab(t)} style={[styles.tab, tab === t && styles.tabActive]}>
-                <Text style={[styles.tabText, tab === t && styles.tabTextActive]}>{t === 'open' ? 'Open' : 'Settled'}</Text>
+            {tabs.map((t) => (
+              <Pressable key={t.key} role="tab" aria-selected={tab === t.key} onPress={() => setTab(t.key)} style={[styles.tab, tab === t.key && styles.tabActive]}>
+                <Text style={[styles.tabText, tab === t.key && styles.tabTextActive]}>{t.label}</Text>
               </Pressable>
             ))}
           </View>
@@ -96,7 +106,7 @@ export function MyBetsScreen() {
       }
       ListEmptyComponent={
         <EmptyState
-          title={tab === 'open' ? 'No open bets' : 'No settled bets yet'}
+          title={tab === 'open' ? 'No open bets' : tab === 'won' ? 'No winning bets yet' : tab === 'lost' ? 'No losing bets' : 'No bets yet'}
           message={tab === 'open' ? 'Bets appear here the moment they are placed, and you can cash them out before they settle.' : 'Settled bets appear here, with what each one paid.'}
         />
       }
@@ -135,19 +145,19 @@ export function MyBetsScreen() {
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  list: { padding: spacing.md, gap: spacing.md, paddingBottom: 120, width: '100%', maxWidth: maxContentWidth, alignSelf: 'center' },
-  heading: { gap: spacing.sm },
-  title: { color: '#ffffff', fontSize: 24, fontWeight: '700' },
-  tabs: { flexDirection: 'row', gap: spacing.xs },
-  tab: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: colors.border },
-  tabActive: { backgroundColor: colors.selected, borderColor: colors.accent },
-  tabText: { color: colors.textMuted, fontWeight: '600' },
+  list: { padding: spacing.md, gap: spacing.sm + 2, paddingBottom: 40, width: '100%', maxWidth: 900, alignSelf: 'center' },
+  heading: { gap: spacing.sm + 2, marginBottom: spacing.xs },
+  title: { color: colors.text, fontSize: 24, fontWeight: '800' },
+  tabs: { flexDirection: 'row', backgroundColor: colors.card, borderRadius: radius.md, padding: 4 },
+  tab: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: radius.sm },
+  tabActive: { backgroundColor: colors.accent },
+  tabText: { color: colors.textMuted, fontWeight: '800', fontSize: 13 },
   tabTextActive: { color: '#ffffff' },
-  card: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: 1, borderRadius: radius.lg, padding: spacing.md, gap: spacing.xs },
+  card: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.md - 2, gap: 6 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm },
-  type: { color: colors.text, fontWeight: '600', flexShrink: 1 },
-  badge: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, fontSize: 12, fontWeight: '600', overflow: 'hidden' },
+  type: { color: colors.text, fontWeight: '800', flexShrink: 1 },
+  badge: { borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 2, fontSize: 11, fontWeight: '800', overflow: 'hidden' },
   leg: { color: colors.textMuted, fontSize: 13 },
   muted: { color: colors.textMuted, fontSize: 13 },
-  amount: { color: colors.text, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  amount: { color: colors.text, fontWeight: '800', fontVariant: ['tabular-nums'] },
 });
