@@ -8,7 +8,8 @@ import { useSession } from '../../../shared/lib/useSession';
 import { colors, radius, spacing } from '../../../shared/ui/theme';
 import { toastAtom } from '../../../shared/ui/Toast';
 import { usePlaceCoupon } from '../api/placeCoupon';
-import { acceptPrices, slipAtom, stakeAtom, totalOdds } from '../state/betslip';
+import { acceptPrices, betTypeAtom, slipAtom, stakeAtom, toggleBanker, totalOdds } from '../state/betslip';
+import { betTypes, lineCount, linePayoutMinor, maxReturnMinor } from '../state/systemBets';
 
 const quickStakes = [10, 50, 100, 250];
 
@@ -21,6 +22,8 @@ function refusalMessage(error: unknown): string {
       return 'A price moved before your bet went in. Review the new prices and place again.';
     case 'market_suspended':
       return 'One of your markets has closed. Remove it to continue.';
+    case 'system_bets_unavailable':
+      return 'System bets are not open right now. Place it as an accumulator instead.';
     case 'insufficient_funds':
       return 'Your balance is too low for this stake.';
     default:
@@ -36,18 +39,27 @@ export function Betslip({ onPlaced }: { onPlaced?: () => void }) {
   const toast = useSetAtom(toastAtom);
   const signedIn = useSession().data?.signedIn === true;
 
-  const stakeMinor = Math.round((Number.parseFloat(stake.replace(',', '.')) || 0) * 100);
+  const [betKey, setBetKey] = useAtom(betTypeAtom);
+  const enteredMinor = Math.round((Number.parseFloat(stake.replace(',', '.')) || 0) * 100);
+  const showBankers = slip.length >= 4;
+  const bankers = showBankers ? slip.filter((s) => s.banker) : [];
+  const others = slip.filter((s) => !bankers.includes(s));
+  const types = betTypes(others.length, bankers.length);
+  const type = types.find((t) => t.key === betKey) ?? types[0]!;
+  const lines = type.folds ? lineCount(others.length, type.folds) : 1;
+  const stakeMinor = enteredMinor * lines;
   const odds = totalOdds(slip);
-  const payoutMinor = Math.round(stakeMinor * odds);
+  const payoutMinor = type.folds
+    ? maxReturnMinor(enteredMinor, others.map((s) => s.odds), type.folds, bankers.map((s) => s.odds))
+    : linePayoutMinor(stakeMinor, slip.map((s) => s.odds));
   const moved = slip.some((s) => s.previousOdds !== undefined);
   const closed = slip.some((s) => s.suspended);
-  const canPlace = slip.length > 0 && stakeMinor >= 100 && !moved && !closed && !place.isPending;
-  const betType = slip.length > 1 ? `Accumulator (${slip.length} legs)` : 'Single';
+  const canPlace = slip.length > 0 && enteredMinor >= 100 && !moved && !closed && !place.isPending;
 
   const submit = () => {
     setConfirmation(null);
     place.mutate(
-      { slip, stakeMinor },
+      { slip, stakeMinor, bet: type.folds ? { key: type.key, folds: type.folds, unitStakeMinor: enteredMinor } : undefined },
       {
         onSuccess: (coupon) => {
           const message = `Bet placed · ${formatRand(stakeMinor)} to return ${formatRand(coupon.potentialPayout.minorUnits)}`;
@@ -96,6 +108,11 @@ export function Betslip({ onPlaced }: { onPlaced?: () => void }) {
                 <View style={{ alignItems: 'flex-end' }}>
                   {s.previousOdds !== undefined ? <Text style={styles.oldOdds}>{formatOdds(s.previousOdds)}</Text> : null}
                   <Text style={[styles.legOdds, s.previousOdds !== undefined && styles.movedOdds]}>{formatOdds(s.odds)}</Text>
+                  {showBankers ? (
+                    <Pressable accessibilityRole="button" aria-pressed={!!s.banker} accessibilityLabel={`Banker ${s.selectionName}`} onPress={() => setSlip((c) => toggleBanker(c, s.fixtureId))} style={[styles.banker, s.banker && styles.bankerOn]}>
+                      <Text style={[styles.bankerText, s.banker && styles.bankerTextOn]}>B</Text>
+                    </Pressable>
+                  ) : null}
                   <Pressable accessibilityRole="button" accessibilityLabel={`Remove ${s.selectionName}`} onPress={() => setSlip((c) => c.filter((x) => x !== s))}>
                     <Text style={styles.remove}>Remove</Text>
                   </Pressable>
@@ -104,13 +121,24 @@ export function Betslip({ onPlaced }: { onPlaced?: () => void }) {
             ))}
           </ScrollView>
 
+          {types.length > 1 ? (
+            <View style={styles.types} role="radiogroup" aria-label="Bet type">
+              {types.map((t) => (
+                <Pressable key={t.key} role="radio" aria-checked={t.key === type.key} onPress={() => setBetKey(t.key)} style={[styles.typeChip, t.key === type.key && styles.chipOn]}>
+                  <Text style={styles.chipText}>{t.label}</Text>
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
+
           <View style={styles.summary}>
-            <Text style={styles.betType}>{betType}</Text>
-            <Text style={styles.totalOdds}>@ {formatOdds(odds)}</Text>
+            <Text style={styles.betType}>{type.folds ? `${type.label} · ${lines} lines` : type.label}</Text>
+            {type.folds ? <Text style={styles.muted}>Total {formatRand(stakeMinor)}</Text> : <Text style={styles.totalOdds}>@ {formatOdds(odds)}</Text>}
           </View>
+          {showBankers && type.folds && bankers.length > 0 ? <Text style={styles.muted}>Bankers (B) are in every line.</Text> : null}
 
           <Text style={styles.label} nativeID="stake-label">
-            Stake (R)
+            {type.folds ? 'Stake per line (R)' : 'Stake (R)'}
           </Text>
           <TextInput
             accessibilityLabelledBy="stake-label"
@@ -130,7 +158,7 @@ export function Betslip({ onPlaced }: { onPlaced?: () => void }) {
           </View>
 
           <View style={styles.summary}>
-            <Text style={styles.muted}>Potential return</Text>
+            <Text style={styles.muted}>{type.folds ? 'Return if every selection wins' : 'Potential return'}</Text>
             <Text style={styles.payout}>{formatRand(payoutMinor)}</Text>
           </View>
 
@@ -152,10 +180,10 @@ export function Betslip({ onPlaced }: { onPlaced?: () => void }) {
             </Pressable>
           ) : (
             <Pressable accessibilityRole="button" disabled={!canPlace} onPress={submit} style={[styles.button, styles.buttonPlace, !canPlace && styles.buttonDisabled]}>
-              <Text style={[styles.buttonText, styles.buttonPlaceText]}>{place.isPending ? 'Placing…' : `Place bet ${stakeMinor >= 100 ? formatRand(stakeMinor) : ''}`}</Text>
+              <Text style={[styles.buttonText, styles.buttonPlaceText]}>{place.isPending ? 'Placing…' : `Place bet ${enteredMinor >= 100 ? formatRand(stakeMinor) : ''}`}</Text>
             </Pressable>
           )}
-          {stakeMinor > 0 && stakeMinor < 100 ? <Text style={styles.muted}>Minimum stake is R1.</Text> : null}
+          {enteredMinor > 0 && enteredMinor < 100 ? <Text style={styles.muted}>Minimum stake is R1.</Text> : null}
         </>
       )}
     </View>
@@ -187,6 +215,12 @@ const styles = StyleSheet.create({
   quick: { flexDirection: 'row', gap: spacing.xs },
   chip: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: radius.sm, backgroundColor: colors.card, borderWidth: 2, borderColor: 'transparent' },
   chipOn: { borderColor: colors.accent },
+  types: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  typeChip: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: colors.card, borderWidth: 2, borderColor: 'transparent' },
+  banker: { minWidth: 28, minHeight: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border, marginBottom: 4 },
+  bankerOn: { backgroundColor: colors.gold, borderColor: colors.gold },
+  bankerText: { color: colors.textMuted, fontWeight: '900', fontSize: 12 },
+  bankerTextOn: { color: '#1a1300' },
   chipText: { color: colors.text, fontSize: 13, fontWeight: '800' },
   muted: { color: colors.textMuted, fontSize: 13 },
   payout: { color: colors.positive, fontWeight: '800', fontSize: 18, fontVariant: ['tabular-nums'] },
