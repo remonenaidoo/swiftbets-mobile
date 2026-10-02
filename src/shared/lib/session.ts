@@ -48,12 +48,19 @@ async function nativeDemoSignIn(): Promise<boolean> {
   return true;
 }
 
+// Refresh tokens are single-use: a refresh and a handoff must never spend the same one, so they take turns.
+let tokenTurn: Promise<unknown> = Promise.resolve();
+function withRefreshToken<T>(work: (refreshToken: string | null) => Promise<T>): Promise<T> {
+  const turn = tokenTurn.then(async () => work(await tokenStore.getRefreshToken()));
+  tokenTurn = turn.catch(() => undefined);
+  return turn;
+}
+
 const nativeClient = createApiClient({
   baseUrl: `${apiOrigin}/api`,
   defaultHeaders: { 'User-Agent': nativeUserAgent },
   getAccessToken: () => tokenStore.getAccessToken(),
-  refresh: async () => {
-    const refreshToken = await tokenStore.getRefreshToken();
+  refresh: () => withRefreshToken(async (refreshToken) => {
     if (refreshToken) {
       const response = await fetch(`${apiOrigin}/api/auth/refresh`, {
         method: 'POST',
@@ -67,9 +74,28 @@ const nativeClient = createApiClient({
     }
     // Refresh tokens expire; the demo seat is always available again.
     return nativeDemoSignIn();
-  },
+  }),
   onSessionExpired: () => void tokenStore.clear(),
 });
+
+/**
+ * A one-minute link that opens a hosted account page signed in, for the app's in-app browser. The app keeps its own
+ * sign-in (rotated here) and the browser becomes a separate device. Null when the app is not signed in.
+ */
+export function accountHandoffUrl(next: string): Promise<string | null> {
+  return withRefreshToken(async (refreshToken) => {
+    if (!refreshToken) return null;
+    const response = await fetch(`${apiOrigin}/api/session/handoff`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-SwiftBets-Csrf': '1', 'User-Agent': nativeUserAgent },
+      body: JSON.stringify({ refreshToken, next }),
+    });
+    if (!response.ok) return null;
+    const body = (await response.json()) as { accessToken: string; refreshToken: string; url: string };
+    await tokenStore.save(body);
+    return `${apiOrigin}${body.url}`;
+  });
+}
 
 export function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   return isWeb ? webRequest<T>(path, init) : nativeClient<T>(path, init);
