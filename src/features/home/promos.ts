@@ -5,12 +5,13 @@ export interface Promo {
   body: string;
   cta: string;
   href: string;
-  /** Two colours for the gradient behind the text until the artwork is in. */
+  /** Fallback colours while the banner loads. */
   tint: [string, string];
+  banner: 'football' | 'casino' | 'win';
 }
 
 export const promos: Promo[] = [
-  { key: 'live', kicker: 'Premier League · live prices', title: 'Every match.\nLive prices.', body: 'Build a single or an accumulator and cash out before the final whistle.', cta: 'Bet on football', href: '/sports/soccer', tint: ['#18264a', '#3b1d63'] },
-  { key: 'cashout', kicker: 'Cash out', title: 'Take your\nwinnings early.', body: 'Open singles and accumulators can be cashed out at the live price.', cta: 'My bets', href: '/my-bets', tint: ['#0f3b2e', '#145a8a'] },
-  { key: 'safe', kicker: 'Safer gambling', title: 'Set your\nown limits.', body: 'Deposit limits, session reminders and breaks, all in your account.', cta: 'Set limits', href: '/account/safer-gambling', tint: ['#2a1a4a', '#7a2d55'] },
+  { key: 'live', kicker: 'Premier League · live prices', title: 'Every match.\nLive prices.', body: 'Build a single or an accumulator and cash out before the final whistle.', cta: 'Bet on football', href: '/sports/soccer', tint: ['#0b1a44', '#14306e'], banner: 'football' },
+  { key: 'cashout', kicker: 'Cash out', title: 'Take your\nwinnings early.', body: 'Open singles and accumulators can be cashed out at the live price.', cta: 'My bets', href: '/my-bets', tint: ['#0b1a44', '#14306e'], banner: 'win' },
+  { key: 'safe', kicker: 'Safer gambling', title: 'Set your\nown limits.', body: 'Deposit limits, session reminders and breaks, all in your account.', cta: 'Set limits', href: '/account/safer-gambling', tint: ['#0b1a44', '#14306e'], banner: 'casino' },
 ];

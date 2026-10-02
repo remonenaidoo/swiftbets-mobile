@@ -2,6 +2,7 @@ import { Link } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { EmptyState } from '../../../shared/ui/EmptyState';
+import { Icon } from '../../../shared/ui/Icon';
 import { useIsWide } from '../../../shared/ui/Layout';
 import { Section } from '../../../shared/ui/Section';
 import { CategoryBar } from '../../../shared/ui/shell/CategoryBar';
@@ -39,7 +40,8 @@ export function HomeScreen() {
         <View style={styles.split}>
           <Link href="/sports/soccer" asChild>
             <Pressable accessibilityRole="link" style={styles.big}>
-              <Text style={styles.bigTitle}>⚽ Sports</Text>
+              <Icon name="nav/sports" size={44} />
+              <Text style={styles.bigTitle}>Sports</Text>
               <Text style={styles.bigMeta}>
                 <Text style={styles.dot}>● </Text>
                 {upcoming ?? '…'} open
@@ -48,13 +50,14 @@ export function HomeScreen() {
           </Link>
           <Link href="/casino" asChild>
             <Pressable accessibilityRole="link" style={styles.big}>
-              <Text style={styles.bigTitle}>🎰 Casino</Text>
+              <Icon name="nav/casino" size={44} />
+              <Text style={styles.bigTitle}>Casino</Text>
               <Text style={styles.bigMeta}>Coming soon</Text>
             </Pressable>
           </Link>
         </View>
 
-        <Section title="Next up" glyph="⚽" href="/sports/soccer" more="All football">
+        <Section title="Next up" icon="sports/football" href="/sports/soccer" more="All football">
           {fixtures.isPending ? <ActivityIndicator color={colors.accent} /> : null}
           {fixtures.isError ? <EmptyState title="Matches could not load" message="Check your connection and try again." /> : null}
           {fixtures.isSuccess && next.length === 0 ? <Text style={styles.muted}>New fixtures open for betting every few minutes.</Text> : null}
@@ -67,7 +70,7 @@ export function HomeScreen() {
           </View>
         </Section>
 
-        <Section title="Casino" glyph="🎰" href="/casino" more="Lobby">
+        <Section title="Casino" icon="casino/slots" href="/casino" more="Lobby">
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.rail}>
             {comingSoonGames.slice(0, 8).map((g) => (
               <GamePoster key={g.key} game={g} width={wide ? 150 : 118} />

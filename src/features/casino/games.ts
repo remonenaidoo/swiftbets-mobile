@@ -6,7 +6,7 @@ export interface GameCard {
   tint: [string, string];
 }
 
-/** The lobby's shelf until the casino service (E5) serves the real catalogue; every card says it is coming soon. */
+/** The lobby's shelf until the casino service (E5) serves the real catalogue; every card says it is coming soon. Keys match the artwork. */
 export const comingSoonGames: GameCard[] = [
   { key: 'sun-temple', name: 'Sun Temple', category: 'slots', tag: 'EXCLUSIVE', tint: ['#ffb347', '#c2410c'] },
   { key: 'deep-blue', name: 'Deep Blue', category: 'slots', tag: 'NEW', tint: ['#38bdf8', '#1e3a8a'] },
@@ -18,4 +18,6 @@ export const comingSoonGames: GameCard[] = [
   { key: 'crazy-wheel', name: 'Crazy Wheel', category: 'live', tint: ['#fb923c', '#9a3412'] },
   { key: 'jet-rush', name: 'Jet Rush', category: 'crash', tag: 'EXCLUSIVE', tint: ['#facc15', '#1f2937'] },
   { key: 'rocket', name: 'Rocket', category: 'crash', tint: ['#f87171', '#7f1d1d'] },
+  { key: 'lucky-lion', name: 'Lucky Lion', category: 'slots', tint: ['#fbbf24', '#78350f'] },
+  { key: 'neon-sevens', name: 'Neon Sevens', category: 'slots', tag: 'NEW', tint: ['#e879f9', '#581c87'] },
 ];

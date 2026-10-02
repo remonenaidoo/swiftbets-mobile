@@ -1,24 +1,26 @@
 import { Link, usePathname } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSports } from "../../../features/catalog/api/catalog";
+import type { IconName } from "../artwork";
+import { Icon } from "../Icon";
 import { colors, radius, spacing } from "../theme";
 
 const comingSoon = [
-  { label: "Tennis", glyph: "🎾" },
-  { label: "Basketball", glyph: "🏀" },
-  { label: "Cricket", glyph: "🏏" },
-  { label: "Rugby", glyph: "🏉" },
+  { label: "Tennis", icon: "sports/tennis" as IconName },
+  { label: "Basketball", icon: "sports/basketball" as IconName },
+  { label: "Cricket", icon: "sports/cricket" as IconName },
+  { label: "Rugby", icon: "sports/rugby" as IconName },
 ];
 
 function Item({
   href,
   label,
-  glyph,
+  icon,
   count,
 }: {
   href?: string;
   label: string;
-  glyph?: string;
+  icon?: IconName;
   count?: string;
 }) {
   const pathname = usePathname();
@@ -29,12 +31,12 @@ function Item({
       : pathname.startsWith(href.split("?")[0] ?? href));
   const body = (
     <View style={[styles.item, on && styles.itemOn, !href && styles.itemSoon]}>
+      {icon ? <Icon name={icon} size={22} /> : null}
       <Text
         style={[styles.itemText, on && styles.itemTextOn]}
         numberOfLines={1}
       >
-        {glyph ? `${glyph}  ` : ""}
-        {label}
+                {label}
       </Text>
       {count ? <Text style={styles.count}>{count}</Text> : null}
     </View>
@@ -88,17 +90,17 @@ export function SideMenu() {
             </Pressable>
           </Link>
         </View>
-        <Item href="/" label="Home" glyph="🏠" />
-        <Item href="/my-bets" label="My bets" glyph="🧾" />
+        <Item href="/" label="Home" icon="nav/home" />
+        <Item href="/my-bets" label="My bets" icon="nav/my-bets" />
         <Text style={styles.heading}>SPORTS</Text>
         <Item
           href="/sports/soccer"
           label="Football"
-          glyph="⚽"
+          icon="sports/football"
           count={upcoming ? String(upcoming) : undefined}
         />
         {comingSoon.map((s) => (
-          <Item key={s.label} label={s.label} glyph={s.glyph} count="soon" />
+          <Item key={s.label} label={s.label} icon={s.icon} count="soon" />
         ))}
         {soccer && soccer.competitions.length > 0 ? (
           <Text style={styles.heading}>TOP COMPETITIONS</Text>
@@ -155,6 +157,8 @@ const styles = StyleSheet.create({
   itemOn: { backgroundColor: colors.card },
   itemSoon: {},
   itemText: {
+    marginLeft: spacing.sm,
+    flex: 1,
     color: colors.textMuted,
     fontSize: 13,
     fontWeight: "700",

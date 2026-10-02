@@ -4,23 +4,25 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { formatRand } from '../../../shared/lib/format';
 import { openSite, openWallet } from '../../../shared/lib/links';
 import { useSession } from '../../../shared/lib/useSession';
+import type { IconName } from '../../../shared/ui/artwork';
 import { GetTheApp } from '../../../shared/ui/GetTheApp';
+import { Icon } from '../../../shared/ui/Icon';
 import { colors, radius, spacing } from '../../../shared/ui/theme';
 import { useSignOut } from '../../account/api/account';
 import { useFixtures } from '../../fixtures/api/fixtures';
 import { useBalance } from '../../my-bets/api/myBets';
 
 const tiles = [
-  { href: '/promotions', label: 'Promotions', glyph: '🎁' },
-  { href: '/my-bets', label: 'My bets', glyph: '🧾' },
-  { href: '/sports/soccer', label: 'Football', glyph: '⚽' },
-  { href: '/casino', label: 'Casino', glyph: '🎰' },
+  { href: '/promotions', label: 'Promotions', icon: 'nav/promotions' as IconName },
+  { href: '/my-bets', label: 'My bets', icon: 'nav/my-bets' as IconName },
+  { href: '/sports/soccer', label: 'Football', icon: 'sports/football' as IconName },
+  { href: '/casino', label: 'Casino', icon: 'nav/casino' as IconName },
 ];
 
 const rows = [
-  { href: '/account', label: 'Account', glyph: '👤' },
-  { href: '/account/wallet', label: 'Wallet & transactions', glyph: '💳' },
-  { href: '/account/safer-gambling', label: 'Safer gambling & limits', glyph: '🛡' },
+  { href: '/account', label: 'Account', icon: 'nav/account' as IconName },
+  { href: '/account/wallet', label: 'Wallet & transactions', icon: 'nav/transactions' as IconName },
+  { href: '/account/safer-gambling', label: 'Safer gambling & limits', icon: 'nav/safer-gambling' as IconName },
 ];
 
 /** The phone menu: account card, search across open matches, quick tiles, then account links. */
@@ -78,7 +80,7 @@ export function MenuScreen() {
         <Link key={f.fixtureId} href={`/fixtures/${encodeURIComponent(f.fixtureId)}` as never} asChild>
           <Pressable style={styles.row}>
             <Text style={styles.rowText}>
-              ⚽ {f.homeTeam} v {f.awayTeam}
+              {f.homeTeam} v {f.awayTeam}
             </Text>
             <Text style={styles.rowMeta}>{f.competition} ›</Text>
           </Pressable>
@@ -90,9 +92,8 @@ export function MenuScreen() {
         {tiles.map((t) => (
           <Link key={t.href} href={t.href as never} asChild>
             <Pressable style={styles.tile}>
-              <Text style={styles.tileText}>
-                {t.glyph} {t.label}
-              </Text>
+              <Icon name={t.icon} size={32} />
+              <Text style={styles.tileText}>{t.label}</Text>
             </Pressable>
           </Link>
         ))}
@@ -101,9 +102,10 @@ export function MenuScreen() {
       {signedIn
         ? rows.map((r) => (
             <Pressable key={r.href} accessibilityRole="link" onPress={() => openSite(r.href)} style={styles.row}>
-              <Text style={styles.rowText}>
-                {r.glyph} {r.label}
-              </Text>
+              <View style={styles.rowLead}>
+                <Icon name={r.icon} size={26} />
+                <Text style={styles.rowText}>{r.label}</Text>
+              </View>
               <Text style={styles.rowMeta}>›</Text>
             </Pressable>
           ))
@@ -135,9 +137,10 @@ const styles = StyleSheet.create({
   withdrawText: { color: '#ffffff', fontWeight: '800' },
   search: { color: colors.text, backgroundColor: colors.surfaceSunken, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: 12, fontSize: 14 },
   tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  tile: { width: '48.5%', backgroundColor: colors.card, borderRadius: radius.md, paddingVertical: 14, paddingHorizontal: 12 },
+  tile: { width: '48.5%', flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.card, borderRadius: radius.md, paddingVertical: 12, paddingHorizontal: 12 },
   tileText: { color: colors.text, fontWeight: '800', fontSize: 14 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.card, borderRadius: radius.md, paddingVertical: 14, paddingHorizontal: 14 },
+  rowLead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2, flexShrink: 1 },
   rowText: { color: colors.text, fontWeight: '700', fontSize: 14, flexShrink: 1 },
   rowMeta: { color: colors.textMuted, fontSize: 12 },
   app: { alignItems: 'center', marginTop: spacing.md },

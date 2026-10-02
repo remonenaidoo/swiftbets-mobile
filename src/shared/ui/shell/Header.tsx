@@ -1,10 +1,11 @@
 import { Link } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBalance } from '../../../features/my-bets/api/myBets';
 import { formatRand } from '../../lib/format';
 import { openWallet } from '../../lib/links';
 import { useSession } from '../../lib/useSession';
+import { brand } from '../artwork';
 import { GetTheApp } from '../GetTheApp';
 import { useIsWide } from '../Layout';
 import { colors, maxContentWidth, radius, spacing } from '../theme';
@@ -12,9 +13,7 @@ import { colors, maxContentWidth, radius, spacing } from '../theme';
 export function Logo() {
   return (
     <Link href="/" accessibilityLabel="SwiftBets home">
-      <Text style={styles.logo}>
-        SWIFT<Text style={styles.logoAccent}>BETS</Text>
-      </Text>
+      <Image source={brand.logo} style={styles.logoImage} resizeMode="contain" accessibilityLabel="SwiftBets" />
     </Link>
   );
 }
@@ -65,8 +64,7 @@ const styles = StyleSheet.create({
   bar: { backgroundColor: colors.surfaceRaised, borderBottomWidth: 1, borderBottomColor: colors.border, paddingBottom: spacing.sm, paddingHorizontal: spacing.md },
   inner: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, width: '100%', maxWidth: maxContentWidth, alignSelf: 'center', minHeight: 40 },
   grow: { flex: 1 },
-  logo: { color: colors.text, fontSize: 21, fontWeight: '900', letterSpacing: 0.5 },
-  logoAccent: { color: colors.odds },
+  logoImage: { height: 28, width: 148 },
   balance: { alignItems: 'flex-end', marginRight: spacing.xs },
   balanceLabel: { color: colors.textMuted, fontSize: 11 },
   balanceValue: { color: colors.text, fontWeight: '800', fontSize: 15, fontVariant: ['tabular-nums'] },
