@@ -55,10 +55,11 @@ function Item({
   );
 }
 
-/** Desktop: sports and casino switch, then the sports, then the top competitions from the catalogue. */
+/** Desktop: sports, racing and casino switch, then the sports, then the top competitions from the catalogue. */
 export function SideMenu() {
   const pathname = usePathname();
   const casino = pathname.startsWith("/casino");
+  const racing = pathname.startsWith("/racing");
   const soccer = useSports().data?.find((s) => s.sportId === "soccer");
   const upcoming = soccer?.competitions.reduce(
     (n, c) => n + c.upcomingFixtures,
@@ -73,10 +74,20 @@ export function SideMenu() {
             <Pressable
               style={StyleSheet.flatten([
                 styles.switchItem,
-                !casino && styles.switchOn,
+                !casino && !racing && styles.switchOn,
               ])}
             >
               <Text style={styles.switchText}>Sports</Text>
+            </Pressable>
+          </Link>
+          <Link href="/racing" asChild>
+            <Pressable
+              style={StyleSheet.flatten([
+                styles.switchItem,
+                racing && styles.switchOn,
+              ])}
+            >
+              <Text style={styles.switchText}>Racing</Text>
             </Pressable>
           </Link>
           <Link href="/casino" asChild>
@@ -99,6 +110,7 @@ export function SideMenu() {
           icon="sports/football"
           count={upcoming ? String(upcoming) : undefined}
         />
+        <Item href="/racing" label="Horse racing" icon="sports/horse-racing" />
         {comingSoon.map((s) => (
           <Item key={s.label} label={s.label} icon={s.icon} count="soon" />
         ))}
