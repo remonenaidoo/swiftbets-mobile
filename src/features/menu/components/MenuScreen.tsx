@@ -10,13 +10,14 @@ import { GetTheApp } from '../../../shared/ui/GetTheApp';
 import { Icon } from '../../../shared/ui/Icon';
 import { colors, radius, spacing } from '../../../shared/ui/theme';
 import { useSignOut } from '../../account/api/account';
+import { useSports } from '../../catalog/api/catalog';
 import { useFixtures } from '../../fixtures/api/fixtures';
+import { fixtureName, sportsMenu } from '../../sports/sports';
 import { useBalance } from '../../my-bets/api/myBets';
 
 const tiles = [
   { href: '/promotions', label: 'Promotions', icon: 'nav/promotions' as IconName },
   { href: '/my-bets', label: 'My bets', icon: 'nav/my-bets' as IconName },
-  { href: '/sports/soccer', label: 'Football', icon: 'sports/football' as IconName },
   { href: '/casino', label: 'Casino', icon: 'nav/casino' as IconName },
 ];
 
@@ -34,6 +35,7 @@ export function MenuScreen() {
   const balance = useBalance();
   const signOut = useSignOut();
   const fixtures = useFixtures();
+  const sports = sportsMenu(useSports().data);
   const [hidden, setHidden] = useState(false);
   const [query, setQuery] = useState('');
   const q = query.trim().toLowerCase();
@@ -83,7 +85,7 @@ export function MenuScreen() {
         <Link key={f.fixtureId} href={`/fixtures/${encodeURIComponent(f.fixtureId)}` as never} asChild>
           <Pressable style={styles.row}>
             <Text style={styles.rowText}>
-              {f.homeTeam} v {f.awayTeam}
+              {fixtureName(f)}
             </Text>
             <Text style={styles.rowMeta}>{f.competition} ›</Text>
           </Pressable>
@@ -92,7 +94,7 @@ export function MenuScreen() {
       {q.length >= 2 && matches.length === 0 ? <Text style={styles.rowMeta}>No open match matches “{query}”.</Text> : null}
 
       <View style={styles.tiles}>
-        {tiles.map((t) => (
+        {[...sports.map((s) => ({ href: `/sports/${s.sportId}`, label: s.name, icon: s.icon })), ...tiles].map((t) => (
           <Link key={t.href} href={t.href as never} asChild>
             <Pressable style={styles.tile}>
               <Icon name={t.icon} size={32} />

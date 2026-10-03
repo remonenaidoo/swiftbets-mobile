@@ -2,16 +2,24 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../../shared/lib/session';
 import type { Fixture } from '../../../shared/lib/types';
 import { useDeltas, useLiveInvalidation } from '../../../shared/realtime/useLive';
+import { sportOf } from '../../sports/sports';
 
 export const fixturesKey = ['fixtures'] as const;
 
-/** Upcoming fixtures with their markets; each fixture-changed delta replaces that fixture in place. */
-export function useFixtures() {
+/** One sport's listing has its own key; every listing starts with fixturesKey. */
+export const sportFixturesKey = (sportId?: string) => (sportId ? ([...fixturesKey, sportId] as const) : fixturesKey);
+
+/** Upcoming fixtures with their markets, optionally for one sport; each fixture-changed delta replaces that fixture in place. */
+export function useFixtures(sportId?: string) {
   const queryClient = useQueryClient();
-  useLiveInvalidation([], fixturesKey);
+  const key = sportFixturesKey(sportId);
+  useLiveInvalidation([], key);
   useDeltas(['fixture-changed'], (delta) => {
     const changed = delta.payload as Fixture;
-    queryClient.setQueryData<Fixture[]>(fixturesKey, (current) => {
+    if (sportId && sportOf(changed) !== sportId) {
+      return;
+    }
+    queryClient.setQueryData<Fixture[]>(key, (current) => {
       if (!current) {
         return current;
       }
@@ -28,5 +36,6 @@ export function useFixtures() {
     });
   });
 
-  return useQuery({ queryKey: fixturesKey, queryFn: () => api<Fixture[]>('/fixtures/?limit=60') });
+  const query = sportId ? `/fixtures/?limit=60&sportId=${encodeURIComponent(sportId)}` : '/fixtures/?limit=60';
+  return useQuery({ queryKey: key, queryFn: () => api<Fixture[]>(query) });
 }

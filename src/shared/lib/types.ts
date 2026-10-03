@@ -13,11 +13,13 @@ export interface Market {
   marketId: string;
   type: string;
   status: 'open' | 'suspended' | 'settled' | string;
+  line?: number | null;
   selections: Selection[];
 }
 
 export interface Fixture {
   fixtureId: string;
+  sport?: string;
   competition: string;
   homeTeam: string;
   awayTeam: string;
