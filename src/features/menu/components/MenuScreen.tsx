@@ -17,6 +17,7 @@ const tiles = [
   { href: '/promotions', label: 'Promotions', icon: 'nav/promotions' as IconName },
   { href: '/my-bets', label: 'My bets', icon: 'nav/my-bets' as IconName },
   { href: '/sports/soccer', label: 'Football', icon: 'sports/football' as IconName },
+  { href: '/racing', label: 'Racing', icon: 'sports/horse-racing' as IconName },
   { href: '/casino', label: 'Casino', icon: 'nav/casino' as IconName },
 ];
 

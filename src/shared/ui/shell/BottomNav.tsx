@@ -10,6 +10,7 @@ import { colors, radius, spacing } from '../theme';
 const tabs = [
   { href: '/', label: 'Home', icon: 'nav/home' },
   { href: '/sports/soccer', label: 'Sports', icon: 'nav/sports' },
+  { href: '/racing', label: 'Racing', icon: 'sports/horse-racing' },
   { href: '/casino', label: 'Casino', icon: 'nav/casino' },
   { href: '/menu', label: 'Menu', icon: 'nav/menu' },
 ] as const;
@@ -28,7 +29,7 @@ function Tab({ href, label, icon }: (typeof tabs)[number]) {
   );
 }
 
-/** Phones: Home · Sports · Betslip (raised, with its count) · Casino · Menu. */
+/** Phones: Home · Sports · Betslip (raised, with its count) · Racing · Casino · Menu. */
 export function BottomNav() {
   const insets = useSafeAreaInsets();
   const count = useAtomValue(slipAtom).length;
@@ -48,13 +49,14 @@ export function BottomNav() {
       </Pressable>
       <Tab {...tabs[2]} />
       <Tab {...tabs[3]} />
+      <Tab {...tabs[4]} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   bar: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-around', backgroundColor: colors.surfaceRaised, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.sm },
-  tab: { alignItems: 'center', minWidth: 60, paddingVertical: 2 },
+  tab: { alignItems: 'center', minWidth: 54, paddingVertical: 2 },
   marker: { position: 'absolute', top: -spacing.sm - 1, width: 28, height: 3, borderRadius: 3, backgroundColor: colors.accent },
   label: { color: colors.textMuted, fontSize: 11, fontWeight: '700', marginTop: 2 },
   labelOn: { color: colors.text },
