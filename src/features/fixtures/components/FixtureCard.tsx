@@ -5,7 +5,9 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatKickoff, formatOdds } from '../../../shared/lib/format';
 import type { Fixture, Market } from '../../../shared/lib/types';
 import { colors, radius, spacing } from '../../../shared/ui/theme';
+import { Icon } from '../../../shared/ui/Icon';
 import { slipAtom, toggleSelection } from '../../betslip/state/betslip';
+import { fixtureName as nameOf, isOutright, sportOf } from '../../sports/sports';
 import { marketLabel } from './marketLabel';
 
 /** A team's initials on a colour derived from its name, standing in for a crest. */
@@ -19,13 +21,15 @@ export function Crest({ name, size = 20 }: { name: string; size?: number }) {
   );
 }
 
-export function OddsRow({ fixture, market }: { fixture: Fixture; market: Market }) {
+/** Two or three prices sit in one row; a market with many selections (top batter, outright winner) wraps as a grid. */
+export function OddsRow({ fixture, market, limit }: { fixture: Fixture; market: Market; limit?: number }) {
   const [slip, setSlip] = useAtom(slipAtom);
-  const fixtureName = `${fixture.homeTeam} v ${fixture.awayTeam}`;
+  const fixtureName = nameOf(fixture);
   const open = market.status === 'open' && fixture.status === 'scheduled';
+  const grid = market.selections.length > 3;
   return (
-    <View style={styles.odds}>
-      {market.selections.map((selection) => {
+    <View style={[styles.odds, grid && styles.oddsGrid]}>
+      {market.selections.slice(0, limit).map((selection) => {
         const picked = slip.some((s) => s.marketId === market.marketId && s.selectionId === selection.selectionId);
         return (
           <Pressable
@@ -40,7 +44,7 @@ export function OddsRow({ fixture, market }: { fixture: Fixture; market: Market 
                   fixtureId: fixture.fixtureId,
                   fixtureName,
                   marketId: market.marketId,
-                  marketName: marketLabel(market.type),
+                  marketName: marketLabel(market, sportOf(fixture)),
                   selectionId: selection.selectionId,
                   selectionName: selection.name,
                   odds: selection.odds,
@@ -48,7 +52,7 @@ export function OddsRow({ fixture, market }: { fixture: Fixture; market: Market 
                 }),
               )
             }
-            style={({ hovered }: { pressed: boolean; hovered?: boolean }) => [styles.price, hovered && open && !picked && styles.priceHover, picked && styles.pricePicked, !open && styles.priceClosed]}
+            style={({ hovered }: { pressed: boolean; hovered?: boolean }) => [styles.price, grid && styles.priceGrid, hovered && open && !picked && styles.priceHover, picked && styles.pricePicked, !open && styles.priceClosed]}
           >
             <Text style={[styles.priceName, picked && styles.pickedText]} numberOfLines={1}>
               {selection.name}
@@ -61,19 +65,22 @@ export function OddsRow({ fixture, market }: { fixture: Fixture; market: Market 
   );
 }
 
-/** A match: kickoff or live, the two teams, the match result prices and the goals line. */
+/** A match: kickoff or live, the two teams and its markets. An outright shows the competition and its leading runners. */
 export const FixtureCard = memo(function FixtureCard({ fixture, now, showCompetition = true }: { fixture: Fixture; now: number; showCompetition?: boolean }) {
   const live = fixture.status === 'inPlay';
   const href = `/fixtures/${encodeURIComponent(fixture.fixtureId)}`;
   const [main, ...rest] = fixture.markets;
+  const name = nameOf(fixture);
+  const outright = isOutright(fixture);
+  const sport = sportOf(fixture);
 
   return (
-    <View style={styles.card} accessibilityRole="summary" accessibilityLabel={`${fixture.homeTeam} v ${fixture.awayTeam}`}>
+    <View style={styles.card} accessibilityRole="summary" accessibilityLabel={name}>
       <View style={styles.meta}>
         {live ? (
           <Text style={styles.live}>LIVE</Text>
         ) : (
-          <Text style={styles.time}>{formatKickoff(fixture.kickoffAt, now)}</Text>
+          <Text style={styles.time}>{outright ? `Closes ${formatKickoff(fixture.kickoffAt, now)}` : formatKickoff(fixture.kickoffAt, now)}</Text>
         )}
         {showCompetition ? (
           <Text style={styles.time} numberOfLines={1}>
@@ -81,30 +88,41 @@ export const FixtureCard = memo(function FixtureCard({ fixture, now, showCompeti
           </Text>
         ) : null}
         <View style={styles.grow} />
-        <Link href={href as never} style={styles.more} accessibilityLabel={`${fixture.homeTeam} v ${fixture.awayTeam}, all markets`}>
-          All markets ›
+        <Link href={href as never} style={styles.more} accessibilityLabel={`${name}, all markets`}>
+          {outright ? 'All runners ›' : 'All markets ›'}
         </Link>
       </View>
       <Link href={href as never} asChild>
         <Pressable accessibilityRole="link" style={styles.teams}>
-          <View style={styles.team}>
-            <Crest name={fixture.homeTeam} />
-            <Text style={styles.teamName} numberOfLines={1}>
-              {fixture.homeTeam}
-            </Text>
-          </View>
-          <View style={styles.team}>
-            <Crest name={fixture.awayTeam} />
-            <Text style={styles.teamName} numberOfLines={1}>
-              {fixture.awayTeam}
-            </Text>
-          </View>
+          {outright ? (
+            <View style={styles.team}>
+              <Icon name="sports/trophy" size={22} />
+              <Text style={styles.teamName} numberOfLines={2}>
+                {fixture.homeTeam}
+              </Text>
+            </View>
+          ) : (
+            <>
+              <View style={styles.team}>
+                <Crest name={fixture.homeTeam} />
+                <Text style={styles.teamName} numberOfLines={1}>
+                  {fixture.homeTeam}
+                </Text>
+              </View>
+              <View style={styles.team}>
+                <Crest name={fixture.awayTeam} />
+                <Text style={styles.teamName} numberOfLines={1}>
+                  {fixture.awayTeam}
+                </Text>
+              </View>
+            </>
+          )}
         </Pressable>
       </Link>
-      {main ? <OddsRow fixture={fixture} market={main} /> : null}
+      {main ? <OddsRow fixture={fixture} market={main} limit={outright ? 6 : undefined} /> : null}
       {rest.map((market) => (
         <View key={market.marketId}>
-          <Text style={styles.marketName}>{marketLabel(market.type)}</Text>
+          <Text style={styles.marketName}>{marketLabel(market, sport)}</Text>
           <OddsRow fixture={fixture} market={market} />
         </View>
       ))}
@@ -126,7 +144,9 @@ const styles = StyleSheet.create({
   crestText: { color: '#ffffff', fontSize: 11, fontWeight: '900' },
   marketName: { color: colors.textMuted, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: spacing.xs },
   odds: { flexDirection: 'row', gap: spacing.sm },
+  oddsGrid: { flexWrap: 'wrap' },
   price: { flex: 1, minHeight: 50, borderRadius: radius.md - 2, backgroundColor: colors.surface, paddingVertical: spacing.sm, paddingHorizontal: spacing.sm + 2, justifyContent: 'center', borderWidth: 1, borderColor: 'transparent' },
+  priceGrid: { flexGrow: 1, flexShrink: 0, flexBasis: 130 },
   priceHover: { borderColor: colors.accent },
   pricePicked: { backgroundColor: colors.accent },
   priceClosed: { opacity: 0.4 },

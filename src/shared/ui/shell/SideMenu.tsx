@@ -1,16 +1,10 @@
 import { Link, usePathname } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSports } from "../../../features/catalog/api/catalog";
+import { sportsMenu } from "../../../features/sports/sports";
 import type { IconName } from "../artwork";
 import { Icon } from "../Icon";
 import { colors, radius, spacing } from "../theme";
-
-const comingSoon = [
-  { label: "Tennis", icon: "sports/tennis" as IconName },
-  { label: "Basketball", icon: "sports/basketball" as IconName },
-  { label: "Cricket", icon: "sports/cricket" as IconName },
-  { label: "Rugby", icon: "sports/rugby" as IconName },
-];
 
 function Item({
   href,
@@ -55,15 +49,19 @@ function Item({
   );
 }
 
-/** Desktop: sports and casino switch, then the sports, then the top competitions from the catalogue. */
+/** Desktop: sports and casino switch, then every sport, then the current sport's competitions from the catalogue. */
 export function SideMenu() {
   const pathname = usePathname();
   const casino = pathname.startsWith("/casino");
-  const soccer = useSports().data?.find((s) => s.sportId === "soccer");
-  const upcoming = soccer?.competitions.reduce(
-    (n, c) => n + c.upcomingFixtures,
-    0,
-  );
+  const catalog = useSports().data;
+  const current = pathname.match(/^\/sports\/([^/?]+)/)?.[1] ?? "soccer";
+  const sport =
+    catalog?.find((s) => s.sportId === current) ??
+    catalog?.find((s) => s.sportId === "soccer");
+  const upcoming = (sportId: string) =>
+    catalog
+      ?.find((s) => s.sportId === sportId)
+      ?.competitions.reduce((n, c) => n + c.upcomingFixtures, 0);
 
   return (
     <View style={styles.side}>
@@ -93,22 +91,22 @@ export function SideMenu() {
         <Item href="/" label="Home" icon="nav/home" />
         <Item href="/my-bets" label="My bets" icon="nav/my-bets" />
         <Text style={styles.heading}>SPORTS</Text>
-        <Item
-          href="/sports/soccer"
-          label="Football"
-          icon="sports/football"
-          count={upcoming ? String(upcoming) : undefined}
-        />
-        {comingSoon.map((s) => (
-          <Item key={s.label} label={s.label} icon={s.icon} count="soon" />
+        {sportsMenu(catalog).map((s) => (
+          <Item
+            key={s.sportId}
+            href={`/sports/${s.sportId}`}
+            label={s.name}
+            icon={s.icon}
+            count={upcoming(s.sportId) ? String(upcoming(s.sportId)) : undefined}
+          />
         ))}
-        {soccer && soccer.competitions.length > 0 ? (
+        {sport && sport.competitions.length > 0 ? (
           <Text style={styles.heading}>TOP COMPETITIONS</Text>
         ) : null}
-        {soccer?.competitions.map((c) => (
+        {sport?.competitions.map((c) => (
           <Item
             key={c.competitionId}
-            href={`/sports/soccer?competition=${encodeURIComponent(c.name)}`}
+            href={`/sports/${sport.sportId}?competition=${encodeURIComponent(c.name)}`}
             label={c.name}
             count={String(c.upcomingFixtures)}
           />

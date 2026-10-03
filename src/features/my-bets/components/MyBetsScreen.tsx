@@ -7,6 +7,7 @@ import type { Fixture, MyCoupon, MyCouponLeg } from '../../../shared/lib/types';
 import { EmptyState } from '../../../shared/ui/EmptyState';
 import { colors, radius, spacing } from '../../../shared/ui/theme';
 import { fixturesKey } from '../../fixtures/api/fixtures';
+import { fixtureName } from '../../sports/sports';
 import { useSession } from '../../../shared/lib/useSession';
 import { CashoutPanel, canCashOut } from '../../cashout/components/CashoutPanel';
 import { useMyBets } from '../api/myBets';
@@ -59,7 +60,7 @@ export function MyBetsScreen() {
   const bets = useMyBets(tab === 'open');
   const shown = (bets.data ?? []).filter((c) => tab === 'open' || tab === 'all' || (tab === 'won' ? c.status === 'won' || c.status === 'cashedOut' || c.paidToDate > 0 : c.status === 'lost'));
   const signedIn = useSession().data?.signedIn === true;
-  const listed = useQueryClient().getQueryData<Fixture[]>(fixturesKey) ?? [];
+  const listed = useQueryClient().getQueriesData<Fixture[]>({ queryKey: fixturesKey }).flatMap(([, data]) => data ?? []);
   const legFixtureIds = [...new Set((bets.data ?? []).flatMap((c) => (c.legs ?? []).map((l) => l.fixtureId)))];
   // Matches leave the listing once played; their names come from the fixture itself.
   const looked = useQueries({
@@ -68,7 +69,7 @@ export function MyBetsScreen() {
       .map((id) => ({ queryKey: ['fixture', id], queryFn: () => api<Fixture>(`/fixtures/${encodeURIComponent(id)}`), staleTime: Infinity })),
   });
   const fixtures = [...listed, ...looked.flatMap((q) => (q.data ? [q.data] : []))];
-  const names = new Map(fixtures.map((f) => [f.fixtureId, `${f.homeTeam} v ${f.awayTeam}`]));
+  const names = new Map(fixtures.map((f) => [f.fixtureId, fixtureName(f)]));
   const byId = new Map(fixtures.map((f) => [f.fixtureId, f]));
 
   if (!signedIn) {

@@ -8,6 +8,7 @@ import { useIsWide } from '../../../shared/ui/Layout';
 import { Section } from '../../../shared/ui/Section';
 import { CategoryBar } from '../../../shared/ui/shell/CategoryBar';
 import { homeCategories } from '../../../shared/ui/shell/nav';
+import { sportsMenu } from '../../sports/sports';
 import { colors, radius, spacing } from '../../../shared/ui/theme';
 import { comingSoonGames } from '../../casino/games';
 import { GamePoster } from '../../casino/components/GamePoster';
@@ -30,12 +31,13 @@ export function HomeScreen() {
   const wide = useIsWide();
   const now = useMinute();
   const fixtures = useFixtures();
-  const upcoming = useSports().data?.find((s) => s.sportId === 'soccer')?.competitions.reduce((n, c) => n + c.upcomingFixtures, 0);
+  const sports = useSports().data;
+  const upcoming = sports?.flatMap((s) => s.competitions).reduce((n, c) => n + c.upcomingFixtures, 0);
   const next = (fixtures.data ?? []).filter((f) => f.status === 'scheduled').slice(0, wide ? 4 : 3);
 
   return (
     <ScrollView contentContainerStyle={styles.page}>
-      {wide ? null : <CategoryBar items={homeCategories} />}
+      {wide ? null : <CategoryBar items={homeCategories(sportsMenu(sports))} />}
       <View style={styles.inner}>
         <PromoCarousel />
 

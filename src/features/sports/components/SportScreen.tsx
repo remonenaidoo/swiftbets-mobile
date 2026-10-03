@@ -8,6 +8,7 @@ import { colors, radius, spacing } from '../../../shared/ui/theme';
 import { useSports } from '../../catalog/api/catalog';
 import { useFixtures } from '../../fixtures/api/fixtures';
 import { Crest, FixtureCard } from '../../fixtures/components/FixtureCard';
+import { isOutright, sportInfo } from '../sports';
 
 type When = 'all' | 'soon' | 'later';
 const whenTabs: { key: When; label: string }[] = [
@@ -16,13 +17,13 @@ const whenTabs: { key: When; label: string }[] = [
   { key: 'later', label: 'Later' },
 ];
 
-/** One sport: when-tabs, competitions as tiles, then open fixtures grouped by competition. */
+/** One sport: when-tabs, competitions as tiles, its outrights, then open matches grouped by competition. */
 export function SportScreen({ sportId }: { sportId: string }) {
   const wide = useIsWide();
   const params = useLocalSearchParams<{ competition?: string }>();
   const competition = params.competition;
   const sports = useSports();
-  const fixtures = useFixtures();
+  const fixtures = useFixtures(sportId);
   const [when, setWhen] = useState<When>('all');
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [now, setNow] = useState(() => Date.now());
@@ -32,12 +33,16 @@ export function SportScreen({ sportId }: { sportId: string }) {
   }, []);
 
   const sport = sports.data?.find((s) => s.sportId === sportId);
+  const info = sportInfo(sportId, sports.data);
   if (sports.isSuccess && !sport) {
-    return <EmptyState title="Coming soon" message="This sport is not on offer yet. Football is live now." />;
+    return <EmptyState title="Coming soon" message="This sport is not on offer yet. Browse the sports in the menu." />;
   }
 
-  const open = (fixtures.data ?? []).filter((f) => {
-    if (f.status !== 'scheduled' || (competition && f.competition !== competition)) return false;
+  const listed = (fixtures.data ?? []).filter((f) => f.status === 'scheduled' && (!competition || f.competition === competition));
+  // An outright's kickoff is when betting closes, so the when-tabs leave it alone.
+  const outrights = listed.filter(isOutright);
+  const open = listed.filter((f) => {
+    if (isOutright(f)) return false;
     const minutes = (new Date(f.kickoffAt).getTime() - now) / 60_000;
     return when === 'all' || (when === 'soon' ? minutes <= 60 : minutes > 60);
   });
@@ -48,9 +53,9 @@ export function SportScreen({ sportId }: { sportId: string }) {
     <ScrollView contentContainerStyle={styles.page}>
       <View style={styles.titleRow}>
         <View style={styles.titleLead}>
-          <Icon name="sports/football" size={34} />
+          <Icon name={info.icon} size={34} />
           <Text style={styles.title} accessibilityRole="header">
-            {competition || 'Football'}
+            {competition || info.name}
           </Text>
         </View>
         {competition ? (
@@ -87,7 +92,7 @@ export function SportScreen({ sportId }: { sportId: string }) {
 
       {fixtures.isPending ? <ActivityIndicator color={colors.accent} /> : null}
       {fixtures.isError ? <EmptyState title="Matches could not load" message="Check your connection and try again." /> : null}
-      {fixtures.isSuccess && open.length === 0 ? <EmptyState title="No matches here right now" message="New fixtures open for betting every few minutes." /> : null}
+      {fixtures.isSuccess && open.length === 0 && outrights.length === 0 ? <EmptyState title="No matches here right now" message="New fixtures open for betting every few minutes." /> : null}
 
       {groups.map((name) => {
         const isCollapsed = collapsed[name] === true;
@@ -112,6 +117,22 @@ export function SportScreen({ sportId }: { sportId: string }) {
           </View>
         );
       })}
+
+      {outrights.length > 0 ? (
+        <View style={styles.group}>
+          <View style={styles.groupHead}>
+            <Icon name="sports/trophy" size={22} />
+            <Text style={styles.groupName}>Outrights</Text>
+          </View>
+          <View style={[styles.cards, wide && styles.cardsWide]}>
+            {outrights.map((f) => (
+              <View key={f.fixtureId} style={wide ? styles.cardWide : undefined}>
+                <FixtureCard fixture={f} now={now} showCompetition={false} />
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
     </ScrollView>
   );
 }
