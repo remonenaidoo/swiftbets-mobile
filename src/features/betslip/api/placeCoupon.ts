@@ -19,7 +19,7 @@ export function usePlaceCoupon() {
   const queryClient = useQueryClient();
   const key = useRef<string | null>(null);
   return useMutation({
-    mutationFn: ({ slip, stakeMinor, bet }: { slip: SlipSelection[]; stakeMinor: number; bet?: { key: string; folds: number[]; unitStakeMinor: number } }) => {
+    mutationFn: ({ slip, stakeMinor, bet, freeBetId }: { slip: SlipSelection[]; stakeMinor: number; bet?: { key: string; folds: number[]; unitStakeMinor: number }; freeBetId?: string }) => {
       key.current ??= newIdempotencyKey();
       return api<PlacedCoupon>('/coupons/', {
         method: 'POST',
@@ -29,6 +29,7 @@ export function usePlaceCoupon() {
           currency: 'ZAR',
           legs: slip.map((s) => ({ fixtureId: s.fixtureId, marketId: s.marketId, selectionId: s.selectionId, odds: s.odds, offerVersion: s.offerVersion, banker: bet ? !!s.banker : false })),
           ...(bet ? { bets: [{ name: bet.key, folds: bet.folds, unitStake: bet.unitStakeMinor }] } : {}),
+          ...(freeBetId ? { freeBetId } : {}),
         }),
       });
     },

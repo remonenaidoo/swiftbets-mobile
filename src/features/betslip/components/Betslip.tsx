@@ -7,6 +7,7 @@ import { formatOdds, formatRand } from '../../../shared/lib/format';
 import { useSession } from '../../../shared/lib/useSession';
 import { colors, radius, spacing } from '../../../shared/ui/theme';
 import { toastAtom } from '../../../shared/ui/Toast';
+import { freeBetReturnMinor, useBonuses, usableFreeBets } from '../../bonuses/api/bonuses';
 import { usePlaceCoupon } from '../api/placeCoupon';
 import { acceptPrices, betTypeAtom, slipAtom, stakeAtom, toggleBanker, totalOdds } from '../state/betslip';
 import { betTypes, lineCount, linePayoutMinor, maxReturnMinor } from '../state/systemBets';
@@ -40,18 +41,24 @@ export function Betslip({ onPlaced }: { onPlaced?: () => void }) {
   const signedIn = useSession().data?.signedIn === true;
 
   const [betKey, setBetKey] = useAtom(betTypeAtom);
-  const enteredMinor = Math.round((Number.parseFloat(stake.replace(',', '.')) || 0) * 100);
+  const [freeBetId, setFreeBetId] = useState<string | null>(null);
+  const freeBets = usableFreeBets(useBonuses('ZAR').data?.freeBets, 'ZAR');
+  const typedMinor = Math.round((Number.parseFloat(stake.replace(',', '.')) || 0) * 100);
   const showBankers = slip.length >= 4;
   const bankers = showBankers ? slip.filter((s) => s.banker) : [];
   const others = slip.filter((s) => !bankers.includes(s));
   const types = betTypes(others.length, bankers.length);
   const type = types.find((t) => t.key === betKey) ?? types[0]!;
+  // A free bet stakes a single or accumulator at its own amount; system bets use cash.
+  const freeBet = type.folds ? undefined : freeBets.find((f) => f.freeBetId === freeBetId);
+  const enteredMinor = freeBet ? freeBet.amount : typedMinor;
   const lines = type.folds ? lineCount(others.length, type.folds) : 1;
   const stakeMinor = enteredMinor * lines;
   const odds = totalOdds(slip);
   const payoutMinor = type.folds
     ? maxReturnMinor(enteredMinor, others.map((s) => s.odds), type.folds, bankers.map((s) => s.odds))
     : linePayoutMinor(stakeMinor, slip.map((s) => s.odds));
+  const returnMinor = freeBet ? freeBetReturnMinor(payoutMinor, stakeMinor) : payoutMinor;
   const moved = slip.some((s) => s.previousOdds !== undefined);
   const closed = slip.some((s) => s.suspended);
   const canPlace = slip.length > 0 && enteredMinor >= 100 && !moved && !closed && !place.isPending;
@@ -59,10 +66,11 @@ export function Betslip({ onPlaced }: { onPlaced?: () => void }) {
   const submit = () => {
     setConfirmation(null);
     place.mutate(
-      { slip, stakeMinor, bet: type.folds ? { key: type.key, folds: type.folds, unitStakeMinor: enteredMinor } : undefined },
+      { slip, stakeMinor, bet: type.folds ? { key: type.key, folds: type.folds, unitStakeMinor: enteredMinor } : undefined, freeBetId: freeBet?.freeBetId },
       {
         onSuccess: (coupon) => {
-          const message = `Bet placed · ${formatRand(stakeMinor)} to return ${formatRand(coupon.potentialPayout.minorUnits)}`;
+          setFreeBetId(null);
+          const message = `${freeBet ? 'Free bet placed' : 'Bet placed'} · ${formatRand(stakeMinor)} to return ${formatRand(coupon.potentialPayout.minorUnits)}`;
           setConfirmation(message);
           toast(message);
           setSlip([]);
@@ -140,15 +148,30 @@ export function Betslip({ onPlaced }: { onPlaced?: () => void }) {
           <Text style={styles.label} nativeID="stake-label">
             {type.folds ? 'Stake per line (R)' : 'Stake (R)'}
           </Text>
+          {freeBets.length > 0 && !type.folds ? (
+            <View style={styles.types} role="radiogroup" aria-label="Use a free bet">
+              <Pressable role="radio" aria-checked={!freeBet} onPress={() => setFreeBetId(null)} style={[styles.typeChip, !freeBet && styles.chipOn]}>
+                <Text style={styles.chipText}>Cash stake</Text>
+              </Pressable>
+              {freeBets.map((f) => (
+                <Pressable key={f.freeBetId} role="radio" aria-checked={freeBet?.freeBetId === f.freeBetId} onPress={() => setFreeBetId(f.freeBetId)} style={[styles.typeChip, freeBet?.freeBetId === f.freeBetId && styles.chipOn]}>
+                  <Text style={styles.chipText}>Free bet {formatRand(f.amount)}</Text>
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
+          {freeBet ? <Text style={styles.muted}>Min odds {formatOdds(freeBet.minOdds)}. The free bet stake is not returned.</Text> : null}
           <TextInput
             accessibilityLabelledBy="stake-label"
             accessibilityLabel="Stake in rand"
-            value={stake}
+            value={freeBet ? String(freeBet.amount / 100) : stake}
+            editable={!freeBet}
             onChangeText={setStake}
             inputMode="decimal"
             keyboardType="decimal-pad"
             style={styles.input}
           />
+          {freeBet ? null : (
           <View style={styles.quick}>
             {quickStakes.map((amount) => (
               <Pressable key={amount} accessibilityRole="button" aria-pressed={stake === String(amount)} onPress={() => setStake(String(amount))} style={[styles.chip, stake === String(amount) && styles.chipOn]}>
@@ -156,10 +179,11 @@ export function Betslip({ onPlaced }: { onPlaced?: () => void }) {
               </Pressable>
             ))}
           </View>
+          )}
 
           <View style={styles.summary}>
             <Text style={styles.muted}>{type.folds ? 'Return if every selection wins' : 'Potential return'}</Text>
-            <Text style={styles.payout}>{formatRand(payoutMinor)}</Text>
+            <Text style={styles.payout}>{formatRand(returnMinor)}</Text>
           </View>
 
           {place.isError ? (
@@ -180,7 +204,7 @@ export function Betslip({ onPlaced }: { onPlaced?: () => void }) {
             </Pressable>
           ) : (
             <Pressable accessibilityRole="button" disabled={!canPlace} onPress={submit} style={[styles.button, styles.buttonPlace, !canPlace && styles.buttonDisabled]}>
-              <Text style={[styles.buttonText, styles.buttonPlaceText]}>{place.isPending ? 'Placing…' : `Place bet ${enteredMinor >= 100 ? formatRand(stakeMinor) : ''}`}</Text>
+              <Text style={[styles.buttonText, styles.buttonPlaceText]}>{place.isPending ? 'Placing…' : `${freeBet ? 'Place free bet' : 'Place bet'} ${enteredMinor >= 100 ? formatRand(stakeMinor) : ''}`}</Text>
             </Pressable>
           )}
           {enteredMinor > 0 && enteredMinor < 100 ? <Text style={styles.muted}>Minimum stake is R1.</Text> : null}
