@@ -9,6 +9,7 @@ import { Section } from '../../../shared/ui/Section';
 import { CategoryBar } from '../../../shared/ui/shell/CategoryBar';
 import { homeCategories } from '../../../shared/ui/shell/nav';
 import { colors, radius, spacing } from '../../../shared/ui/theme';
+import { allGames, useLobby } from '../../casino/api/casino';
 import { comingSoonGames } from '../../casino/games';
 import { GamePoster } from '../../casino/components/GamePoster';
 import { useSports } from '../../catalog/api/catalog';
@@ -32,6 +33,8 @@ export function HomeScreen() {
   const fixtures = useFixtures();
   const upcoming = useSports().data?.find((s) => s.sportId === 'soccer')?.competitions.reduce((n, c) => n + c.upcomingFixtures, 0);
   const next = (fixtures.data ?? []).filter((f) => f.status === 'scheduled').slice(0, wide ? 4 : 3);
+  // The casino tile goes live as soon as the catalogue serves games; until then it says coming soon.
+  const casinoGames = allGames(useLobby().data);
 
   return (
     <ScrollView contentContainerStyle={styles.page}>
@@ -54,7 +57,16 @@ export function HomeScreen() {
             <Pressable accessibilityRole="link" style={styles.big}>
               <Icon name="nav/casino" size={44} />
               <Text style={styles.bigTitle}>Casino</Text>
-              <Text style={styles.bigMeta}>Coming soon</Text>
+              <Text style={styles.bigMeta}>
+                {casinoGames.length > 0 ? (
+                  <>
+                    <Text style={styles.dot}>● </Text>
+                    {casinoGames.length} games
+                  </>
+                ) : (
+                  'Coming soon'
+                )}
+              </Text>
             </Pressable>
           </Link>
         </View>
@@ -76,9 +88,15 @@ export function HomeScreen() {
 
         <Section title="Casino" icon="casino/slots" href="/casino" more="Lobby">
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.rail}>
-            {comingSoonGames.slice(0, 8).map((g) => (
-              <GamePoster key={g.key} game={g} width={wide ? 150 : 118} />
-            ))}
+            {casinoGames.length > 0
+              ? casinoGames.slice(0, 8).map((g) => (
+                  <Link key={g.gameId} href="/casino" asChild>
+                    <Pressable accessibilityRole="link" accessibilityLabel={`${g.name}, open the casino`}>
+                      <GamePoster game={{ key: g.gameId, name: g.name, tag: g.tag, imageUrl: g.imageUrl }} width={wide ? 150 : 118} minBet={g.minBet} />
+                    </Pressable>
+                  </Link>
+                ))
+              : comingSoonGames.slice(0, 8).map((g) => <GamePoster key={g.key} game={g} width={wide ? 150 : 118} />)}
           </ScrollView>
         </Section>
 
