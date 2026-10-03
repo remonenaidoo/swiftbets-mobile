@@ -1,6 +1,7 @@
 import { Link } from 'expo-router';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { unreadCount, useInbox } from '../../../features/inbox/api/inbox';
 import { useBalance } from '../../../features/my-bets/api/myBets';
 import { formatRand } from '../../lib/format';
 import { openWallet } from '../../lib/links';
@@ -8,6 +9,7 @@ import { useSession } from '../../lib/useSession';
 import { brandId, brandName } from '../../brand';
 import { brand } from '../artwork';
 import { GetTheApp } from '../GetTheApp';
+import { Icon } from '../Icon';
 import { useIsWide } from '../Layout';
 import { colors, maxContentWidth, radius, spacing } from '../theme';
 
@@ -25,6 +27,7 @@ export function Header() {
   const insets = useSafeAreaInsets();
   const signedIn = useSession().data?.signedIn === true;
   const balance = useBalance();
+  const unread = unreadCount(useInbox().data);
 
   return (
     <View style={[styles.bar, { paddingTop: insets.top + spacing.sm }]}>
@@ -34,6 +37,16 @@ export function Header() {
         {wide ? <GetTheApp /> : null}
         {signedIn ? (
           <>
+            <Link href={'/inbox' as never} asChild>
+              <Pressable accessibilityRole="link" accessibilityLabel={unread > 0 ? `Inbox, ${unread} unread` : 'Inbox'} style={styles.bell}>
+                <Icon name="nav/notifications" size={26} />
+                {unread > 0 ? (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{unread > 9 ? '9+' : unread}</Text>
+                  </View>
+                ) : null}
+              </Pressable>
+            </Link>
             <View style={styles.balance} accessibilityLabel="Balance">
               <Text style={styles.balanceLabel}>Balance</Text>
               <Text style={styles.balanceValue}>{balance.data ? formatRand(balance.data.available.minorUnits, balance.data.available.currency) : '…'}</Text>
@@ -66,6 +79,9 @@ const styles = StyleSheet.create({
   bar: { backgroundColor: colors.surfaceRaised, borderBottomWidth: 1, borderBottomColor: colors.border, paddingBottom: spacing.sm, paddingHorizontal: spacing.md },
   inner: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, width: '100%', maxWidth: maxContentWidth, alignSelf: 'center', minHeight: 40 },
   grow: { flex: 1 },
+  bell: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  badge: { position: 'absolute', top: 2, right: 0, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: colors.live, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  badgeText: { color: '#ffffff', fontSize: 11, fontWeight: '900' },
   logoImage: { height: 28, width: 148 },
   balance: { alignItems: 'flex-end', marginRight: spacing.xs },
   balanceLabel: { color: colors.textMuted, fontSize: 11 },
