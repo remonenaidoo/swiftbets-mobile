@@ -52,12 +52,12 @@ export function parseMarkdown(source: string): Block[] {
       flush();
     } else if (heading) {
       flush();
-      blocks.push({ kind: 'heading', level: heading[1]!.length as 1 | 2 | 3, inlines: parseInlines(heading[2]!) });
+      blocks.push({ kind: 'heading', level: (heading[1] ?? '#').length as 1 | 2 | 3, inlines: parseInlines(heading[2] ?? '') });
     } else if (bullet || numbered) {
       const ordered = numbered !== null;
       if (paragraph.length || (list && list.ordered !== ordered)) flush();
       list ??= { ordered, items: [] };
-      list.items.push(parseInlines((bullet ?? numbered)![1]!));
+      list.items.push(parseInlines((bullet ?? numbered)?.[1] ?? ''));
     } else {
       if (list) flush();
       paragraph.push(line);
