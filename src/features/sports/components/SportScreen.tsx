@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { Link, router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { EmptyState } from '../../../shared/ui/EmptyState';
@@ -36,6 +36,7 @@ export function SportScreen({ sportId }: { sportId: string }) {
     return <EmptyState title="Coming soon" message="This sport is not on offer yet. Football is live now." />;
   }
 
+  const competitionId = sport?.competitions.find((c) => c.name === competition)?.competitionId;
   const open = (fixtures.data ?? []).filter((f) => {
     if (f.status !== 'scheduled' || (competition && f.competition !== competition)) return false;
     const minutes = (new Date(f.kickoffAt).getTime() - now) / 60_000;
@@ -53,11 +54,18 @@ export function SportScreen({ sportId }: { sportId: string }) {
             {competition || 'Football'}
           </Text>
         </View>
-        {competition ? (
-          <Pressable accessibilityRole="button" onPress={() => setCompetition(undefined)} style={styles.clear}>
-            <Text style={styles.clearText}>All competitions ✕</Text>
-          </Pressable>
-        ) : null}
+        <View style={styles.titleActions}>
+          <Link href={(competitionId ? `/results?competition=${encodeURIComponent(competitionId)}` : '/results') as never} asChild>
+            <Pressable accessibilityRole="link" style={styles.clear}>
+              <Text style={styles.clearText}>Results ›</Text>
+            </Pressable>
+          </Link>
+          {competition ? (
+            <Pressable accessibilityRole="button" onPress={() => setCompetition(undefined)} style={styles.clear}>
+              <Text style={styles.clearText}>All competitions ✕</Text>
+            </Pressable>
+          ) : null}
+        </View>
       </View>
 
       <View style={styles.tabs} role="tablist">
@@ -121,6 +129,7 @@ const styles = StyleSheet.create({
   titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
   titleLead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexShrink: 1 },
   title: { color: colors.text, fontSize: 24, fontWeight: '800', flexShrink: 1 },
+  titleActions: { flexDirection: 'row', gap: spacing.xs + 2 },
   clear: { backgroundColor: colors.card, borderRadius: radius.pill, paddingVertical: 6, paddingHorizontal: 12 },
   clearText: { color: colors.text, fontSize: 12, fontWeight: '700' },
   tabs: { flexDirection: 'row', gap: spacing.xs + 2 },
