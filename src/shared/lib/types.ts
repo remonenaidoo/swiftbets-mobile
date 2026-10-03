@@ -49,6 +49,29 @@ export interface MyCoupon {
   payout: number | null;
   paidToDate: number;
   updatedAt: string;
+  /** Opaque keyset position; pass the last one as `before` for the next page. */
+  cursor?: string | null;
+}
+
+export interface CouponDetailLeg extends MyCouponLeg {
+  marketId: string;
+  isBanker: boolean;
+  /** won, lost or void; null while the result is not in. */
+  result: string | null;
+}
+
+export interface SettlementEntry {
+  version: number;
+  outcome: string;
+  payout: number;
+  settledAt: string;
+}
+
+export interface CouponDetail extends Omit<MyCoupon, 'legs' | 'cursor'> {
+  legs: CouponDetailLeg[];
+  settlements: SettlementEntry[];
+  cashout: { amount: number; cashedOutAt: string | null } | null;
+  resultsAvailable: boolean;
 }
 
 export interface CatalogCompetition {
