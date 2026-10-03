@@ -99,6 +99,7 @@ export function SideMenu() {
           icon="sports/football"
           count={upcoming ? String(upcoming) : undefined}
         />
+        <Item href="/results" label="Results" icon="nav/sports" />
         {comingSoon.map((s) => (
           <Item key={s.label} label={s.label} icon={s.icon} count="soon" />
         ))}

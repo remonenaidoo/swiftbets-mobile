@@ -18,6 +18,7 @@ const tiles = [
   { href: '/my-bets', label: 'My bets', icon: 'nav/my-bets' as IconName },
   { href: '/sports/soccer', label: 'Football', icon: 'sports/football' as IconName },
   { href: '/casino', label: 'Casino', icon: 'nav/casino' as IconName },
+  { href: '/results', label: 'Results', icon: 'nav/sports' as IconName },
 ];
 
 const rows = [

@@ -78,3 +78,19 @@ export interface LiveDelta<T = unknown> {
   occurredAt: string;
   payload: T;
 }
+
+/** A finished fixture from the catalogue; goals are null when a trader resulted it without a score. */
+export interface FixtureResult {
+  fixtureId: string;
+  sportId: string;
+  competitionId: string;
+  competitionName: string;
+  homeTeam: string;
+  awayTeam: string;
+  kickoffAt: string;
+  homeGoals: number | null;
+  awayGoals: number | null;
+  status: string;
+  source: string;
+  resultedAt: string;
+}
