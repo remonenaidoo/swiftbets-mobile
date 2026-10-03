@@ -1,9 +1,9 @@
 import { brandName } from '../../../shared/brand';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { formatRand } from '../../../shared/lib/format';
-import { openSite, openWallet } from '../../../shared/lib/links';
+import { isSitePath, openSite, openWallet } from '../../../shared/lib/links';
 import { useSession } from '../../../shared/lib/useSession';
 import type { IconName } from '../../../shared/ui/artwork';
 import { GetTheApp } from '../../../shared/ui/GetTheApp';
@@ -21,6 +21,8 @@ const tiles = [
 ];
 
 const rows = [
+  { href: '/inbox', label: 'Inbox', icon: 'nav/notifications' as IconName },
+  { href: '/notifications', label: 'Notification settings', icon: 'nav/settings' as IconName },
   { href: '/account', label: 'Account', icon: 'nav/account' as IconName },
   { href: '/account/wallet', label: 'Wallet & transactions', icon: 'nav/transactions' as IconName },
   { href: '/account/safer-gambling', label: 'Safer gambling & limits', icon: 'nav/safer-gambling' as IconName },
@@ -102,7 +104,7 @@ export function MenuScreen() {
 
       {signedIn
         ? rows.map((r) => (
-            <Pressable key={r.href} accessibilityRole="link" onPress={() => openSite(r.href)} style={styles.row}>
+            <Pressable key={r.href} accessibilityRole="link" onPress={() => (isSitePath(r.href) ? openSite(r.href) : router.push(r.href as never))} style={styles.row}>
               <View style={styles.rowLead}>
                 <Icon name={r.icon} size={26} />
                 <Text style={styles.rowText}>{r.label}</Text>
