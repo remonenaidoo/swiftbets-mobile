@@ -7,11 +7,14 @@ import { bannerFrame } from '../../home/components/PromoCarousel';
 import { Icon } from '../../../shared/ui/Icon';
 import { colors, radius, spacing } from '../../../shared/ui/theme';
 import { promos } from '../../home/promos';
+import { useSession } from '../../../shared/lib/useSession';
+import { MyOffers } from './MyOffers';
 
-/** Offer cards: artwork (a gradient until it arrives), the offer, and where it leads. */
+/** A signed-in customer's own offers first, then the offer cards: artwork (a gradient until it arrives), the offer, and where it leads. */
 export function PromotionsScreen() {
   const wide = useIsWide();
   const [cardWidth, setCardWidth] = useState(0);
+  const signedIn = useSession().data?.signedIn === true;
   return (
     <ScrollView contentContainerStyle={styles.page}>
       <View style={styles.titleRow}>
@@ -20,6 +23,7 @@ export function PromotionsScreen() {
           Promotions
         </Text>
       </View>
+      {signedIn ? <MyOffers /> : null}
       <View style={styles.grid}>
         {promos.map((p) => (
           <View key={p.key} style={[styles.card, { width: wide ? '32%' : '100%' }]} onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}>
