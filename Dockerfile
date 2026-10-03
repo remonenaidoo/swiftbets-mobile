@@ -14,6 +14,9 @@ FROM nginxinc/nginx-unprivileged:1.29-alpine
 USER root
 RUN apk upgrade --no-cache && apk add --no-cache --upgrade "pcre2>=10.49" && apk del --no-cache curl
 USER 101
+# Game provider origins the casino frames, space separated (e.g. "https://games.example.com"). Same-origin games need none.
+ENV CASINO_FRAME_ORIGINS="" NGINX_ENVSUBST_OUTPUT_DIR=/tmp
 COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
+COPY deploy/frame-origins.conf.template /etc/nginx/templates/frame-origins.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 8080
