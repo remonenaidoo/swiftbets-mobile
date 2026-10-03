@@ -1,13 +1,15 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'expo-router';
 import { useSetAtom } from 'jotai';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ApiError } from '../../../shared/lib/apiError';
 import { api } from '../../../shared/lib/session';
 import type { Fixture } from '../../../shared/lib/types';
 import { useDeltas } from '../../../shared/realtime/useLive';
 import { EmptyState } from '../../../shared/ui/EmptyState';
 import { colors, radius, spacing } from '../../../shared/ui/theme';
+import { BetBuilderPanel } from '../../betbuilder/components/BetBuilderPanel';
 import { applyFixture, slipAtom } from '../../betslip/state/betslip';
 import { Crest, OddsRow } from './FixtureCard';
 import { marketLabel } from './marketLabel';
@@ -17,6 +19,7 @@ export function FixtureScreen({ fixtureId }: { fixtureId: string }) {
   const queryClient = useQueryClient();
   const setSlip = useSetAtom(slipAtom);
   const key = ['fixture', fixtureId];
+  const [tab, setTab] = useState<'markets' | 'builder'>('markets');
   const fixture = useQuery({ queryKey: key, queryFn: () => api<Fixture>(`/fixtures/${encodeURIComponent(fixtureId)}`) });
 
   useDeltas(['fixture-changed'], (delta) => {
@@ -69,12 +72,25 @@ export function FixtureScreen({ fixtureId }: { fixtureId: string }) {
           </Text>
         </View>
       </View>
-      {f.markets.map((market) => (
-        <View key={market.marketId} style={styles.market}>
-          <Text style={styles.marketName}>{marketLabel(market.type)}</Text>
-          <OddsRow fixture={f} market={market} />
+      {f.betBuilder ? (
+        <View style={styles.tabs} accessibilityRole="tablist">
+          {(['markets', 'builder'] as const).map((t) => (
+            <Pressable key={t} accessibilityRole="tab" accessibilityState={{ selected: tab === t }} onPress={() => setTab(t)} style={[styles.tab, tab === t && styles.tabActive]}>
+              <Text style={[styles.tabText, tab === t && styles.tabTextActive]}>{t === 'markets' ? 'Markets' : 'Bet builder'}</Text>
+            </Pressable>
+          ))}
         </View>
-      ))}
+      ) : null}
+      {f.betBuilder && tab === 'builder' ? (
+        <BetBuilderPanel fixture={f} />
+      ) : (
+        f.markets.map((market) => (
+          <View key={market.marketId} style={styles.market}>
+            <Text style={styles.marketName}>{marketLabel(market.type)}</Text>
+            <OddsRow fixture={f} market={market} />
+          </View>
+        ))
+      )}
     </ScrollView>
   );
 }
@@ -90,6 +106,11 @@ const styles = StyleSheet.create({
   vs: { color: colors.textMuted, fontSize: 22, fontWeight: '800' },
   live: { backgroundColor: colors.live, color: '#ffffff', fontWeight: '900', fontSize: 12, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
   meta: { color: colors.textMuted, fontSize: 12, textAlign: 'center' },
+  tabs: { flexDirection: 'row', gap: spacing.sm },
+  tab: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border },
+  tabActive: { backgroundColor: colors.accent, borderColor: colors.accent },
+  tabText: { color: colors.text, fontWeight: '700' },
+  tabTextActive: { color: '#ffffff' },
   market: { backgroundColor: colors.surfaceRaised, borderRadius: radius.lg, padding: spacing.md - 2, gap: spacing.sm + 2 },
   marketName: { color: colors.text, fontWeight: '800', fontSize: 15 },
 });

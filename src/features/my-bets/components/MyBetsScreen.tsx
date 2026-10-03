@@ -46,6 +46,9 @@ function tone(coupon: MyCoupon): Tone {
 
 /** The selection's display name from the live fixture when it is still listed, else a readable fallback. */
 function legLabel(leg: MyCouponLeg, fixture: Fixture | undefined): string {
+  if (leg.builder?.components.length) {
+    return `Bet builder: ${leg.builder.components.map((c) => legLabel({ ...leg, marketId: c.marketId, selectionId: c.selectionId, builder: null }, fixture)).join(', ')}`;
+  }
   const named = fixture?.markets.find((m) => m.marketId === leg.marketId)?.selections.find((s) => s.selectionId === leg.selectionId)?.name;
   if (named) {
     return named;
@@ -135,7 +138,16 @@ export function MyBetsScreen() {
                     : `Returns ${formatRand(item.potentialPayout ?? 0, item.currency)}`}
               </Text>
             </View>
-            {canCashOut(item) ? <CashoutPanel coupon={item} /> : null}
+            {item.accaBoostPercent ? (
+              <Text style={styles.boost}>
+                Acca boost {item.accaBoostPercent}%{item.boostBonus ? `: +${formatRand(item.boostBonus, item.currency)} paid` : ' on the winnings'}
+              </Text>
+            ) : null}
+            {item.legs?.some((l) => l.builder) ? (
+              item.status === 'open' ? <Text style={styles.muted}>Cash out is not available on bet builder bets.</Text> : null
+            ) : canCashOut(item) ? (
+              <CashoutPanel coupon={item} />
+            ) : null}
           </View>
         );
       }}
@@ -158,6 +170,7 @@ const styles = StyleSheet.create({
   type: { color: colors.text, fontWeight: '800', flexShrink: 1 },
   badge: { borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 2, fontSize: 11, fontWeight: '800', overflow: 'hidden' },
   leg: { color: colors.textMuted, fontSize: 13 },
+  boost: { color: colors.positive, fontSize: 13, fontWeight: '700' },
   muted: { color: colors.textMuted, fontSize: 13 },
   amount: { color: colors.text, fontWeight: '800', fontVariant: ['tabular-nums'] },
 });

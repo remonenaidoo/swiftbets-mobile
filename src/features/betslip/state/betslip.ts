@@ -1,5 +1,5 @@
 import { atom } from 'jotai';
-import type { Fixture } from '../../../shared/lib/types';
+import type { Fixture, Selection } from '../../../shared/lib/types';
 
 export interface SlipSelection {
   fixtureId: string;
@@ -15,6 +15,14 @@ export interface SlipSelection {
   suspended?: boolean;
   /** In a system bet, a banker is in every line. */
   banker?: boolean;
+  /** A bet builder leg: several selections from this fixture priced as one. */
+  builder?: { selections: { marketId: string; selectionId: string; name: string }[] };
+}
+
+/** The price a selection is taken at: its boost while the boost window is open, else the normal price. */
+export function livePrice(selection: Selection, now = Date.now()): number {
+  const boost = selection.boost;
+  return boost && Date.parse(boost.from) <= now && now < Date.parse(boost.until) ? boost.odds : selection.odds;
 }
 
 export const slipAtom = atom<SlipSelection[]>([]);
@@ -46,6 +54,15 @@ export function applyFixture(slip: SlipSelection[], fixture: Fixture): SlipSelec
     if (s.fixtureId !== fixture.fixtureId) {
       return s;
     }
+    if (s.builder) {
+      // The builder price is re-quoted at placement; here only a closed component market matters.
+      const shut = fixture.status !== 'scheduled' || s.builder.selections.some((b) => fixture.markets.find((m) => m.marketId === b.marketId)?.status !== 'open');
+      if (shut === !!s.suspended) {
+        return s;
+      }
+      changed = true;
+      return { ...s, suspended: shut };
+    }
     const market = fixture.markets.find((m) => m.marketId === s.marketId);
     const selection = market?.selections.find((x) => x.selectionId === s.selectionId);
     const suspended = !market || market.status !== 'open' || fixture.status !== 'scheduled';
@@ -53,15 +70,16 @@ export function applyFixture(slip: SlipSelection[], fixture: Fixture): SlipSelec
       changed = true;
       return { ...s, suspended: true };
     }
-    if (selection.odds === s.odds && suspended === !!s.suspended && fixture.offerVersion === s.offerVersion) {
+    const price = livePrice(selection);
+    if (price === s.odds && suspended === !!s.suspended && fixture.offerVersion === s.offerVersion) {
       return s;
     }
     changed = true;
     return {
       ...s,
-      odds: selection.odds,
+      odds: price,
       offerVersion: fixture.offerVersion,
-      previousOdds: selection.odds !== s.odds ? (s.previousOdds ?? s.odds) : s.previousOdds,
+      previousOdds: price !== s.odds ? (s.previousOdds ?? s.odds) : s.previousOdds,
       suspended,
     };
   });

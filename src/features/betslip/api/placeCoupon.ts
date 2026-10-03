@@ -27,7 +27,7 @@ export function usePlaceCoupon() {
         body: JSON.stringify({
           stake: stakeMinor,
           currency: 'ZAR',
-          legs: slip.map((s) => ({ fixtureId: s.fixtureId, marketId: s.marketId, selectionId: s.selectionId, odds: s.odds, offerVersion: s.offerVersion, banker: bet ? !!s.banker : false })),
+          legs: slip.map((s) => ({ fixtureId: s.fixtureId, marketId: s.marketId, selectionId: s.selectionId, odds: s.odds, offerVersion: s.offerVersion, banker: bet ? !!s.banker : false, ...(s.builder ? { builder: { selections: s.builder.selections.map(({ marketId, selectionId }) => ({ marketId, selectionId })) } } : {}) })),
           ...(bet ? { bets: [{ name: bet.key, folds: bet.folds, unitStake: bet.unitStakeMinor }] } : {}),
         }),
       });
