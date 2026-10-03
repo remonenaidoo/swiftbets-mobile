@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   day: { color: colors.text, fontWeight: '800', fontSize: 15, paddingHorizontal: 4 },
   cards: { gap: spacing.sm + 2 },
   cardsWide: { flexDirection: 'row', flexWrap: 'wrap' },
-  cardWide: { width: '49.3%' },
+  cardWide: { width: '48.5%' },
   card: { backgroundColor: colors.card, borderRadius: radius.md, padding: spacing.sm + 4, gap: spacing.sm },
   cardHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm },
   meta: { color: colors.textMuted, fontSize: 12, flexShrink: 1 },
