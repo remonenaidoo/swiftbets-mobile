@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatKickoff, formatOdds } from '../../../shared/lib/format';
 import type { Fixture, Market } from '../../../shared/lib/types';
 import { colors, radius, spacing } from '../../../shared/ui/theme';
-import { slipAtom, toggleSelection } from '../../betslip/state/betslip';
+import { livePrice, slipAtom, toggleSelection } from '../../betslip/state/betslip';
 import { marketLabel } from './marketLabel';
 
 /** A team's initials on a colour derived from its name, standing in for a crest. */
@@ -26,6 +26,8 @@ export function OddsRow({ fixture, market }: { fixture: Fixture; market: Market 
   return (
     <View style={styles.odds}>
       {market.selections.map((selection) => {
+        const price = livePrice(selection);
+        const boosted = price !== selection.odds;
         const picked = slip.some((s) => s.marketId === market.marketId && s.selectionId === selection.selectionId);
         return (
           <Pressable
@@ -33,7 +35,7 @@ export function OddsRow({ fixture, market }: { fixture: Fixture; market: Market 
             disabled={!open}
             accessibilityRole="button"
             accessibilityState={{ selected: picked, disabled: !open }}
-            accessibilityLabel={`${selection.name} ${open ? formatOdds(selection.odds) : '–'}`}
+            accessibilityLabel={`${selection.name} ${open ? formatOdds(price) : '–'}${boosted ? ' boosted' : ''}`}
             onPress={() =>
               setSlip((current) =>
                 toggleSelection(current, {
@@ -43,7 +45,7 @@ export function OddsRow({ fixture, market }: { fixture: Fixture; market: Market 
                   marketName: marketLabel(market.type),
                   selectionId: selection.selectionId,
                   selectionName: selection.name,
-                  odds: selection.odds,
+                  odds: price,
                   offerVersion: fixture.offerVersion,
                 }),
               )
@@ -53,7 +55,8 @@ export function OddsRow({ fixture, market }: { fixture: Fixture; market: Market 
             <Text style={[styles.priceName, picked && styles.pickedText]} numberOfLines={1}>
               {selection.name}
             </Text>
-            <Text style={[styles.priceOdds, picked && styles.pickedOdds]}>{open ? formatOdds(selection.odds) : '–'}</Text>
+            {boosted && open ? <Text style={styles.boost}>Boost</Text> : null}
+            <Text style={[styles.priceOdds, picked && styles.pickedOdds]}>{open ? formatOdds(price) : '–'}</Text>
           </Pressable>
         );
       })}
@@ -113,6 +116,7 @@ export const FixtureCard = memo(function FixtureCard({ fixture, now, showCompeti
 });
 
 const styles = StyleSheet.create({
+  boost: { color: colors.accent, fontSize: 10, fontWeight: '900', textTransform: 'uppercase' },
   card: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.md - 2, gap: spacing.sm },
   meta: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   grow: { flex: 1 },

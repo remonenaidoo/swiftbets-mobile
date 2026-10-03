@@ -7,6 +7,8 @@ import { formatOdds, formatRand } from '../../../shared/lib/format';
 import { useSession } from '../../../shared/lib/useSession';
 import { colors, radius, spacing } from '../../../shared/ui/theme';
 import { toastAtom } from '../../../shared/ui/Toast';
+import { useAccaBoost } from '../../betbuilder/api/betBuilder';
+import { accaBoostPercent, accaBonusMinor } from '../../betbuilder/model';
 import { usePlaceCoupon } from '../api/placeCoupon';
 import { acceptPrices, betTypeAtom, slipAtom, stakeAtom, toggleBanker, totalOdds } from '../state/betslip';
 import { betTypes, lineCount, linePayoutMinor, maxReturnMinor } from '../state/systemBets';
@@ -52,6 +54,9 @@ export function Betslip({ onPlaced }: { onPlaced?: () => void }) {
   const payoutMinor = type.folds
     ? maxReturnMinor(enteredMinor, others.map((s) => s.odds), type.folds, bankers.map((s) => s.odds))
     : linePayoutMinor(stakeMinor, slip.map((s) => s.odds));
+  const accaTable = useAccaBoost();
+  const boostPercent = type.folds || slip.length < 2 ? 0 : accaBoostPercent(accaTable.data, slip.map((s) => s.odds));
+  const boostMinor = accaBonusMinor(stakeMinor, payoutMinor, boostPercent);
   const moved = slip.some((s) => s.previousOdds !== undefined);
   const closed = slip.some((s) => s.suspended);
   const canPlace = slip.length > 0 && enteredMinor >= 100 && !moved && !closed && !place.isPending;
@@ -103,6 +108,7 @@ export function Betslip({ onPlaced }: { onPlaced?: () => void }) {
                   <Text style={styles.legMeta} numberOfLines={1}>
                     {s.marketName} · {s.fixtureName}
                   </Text>
+                  {s.builder ? <Text style={styles.legMeta}>{s.builder.selections.map((b) => b.name).join(' + ')}</Text> : null}
                   {s.suspended ? <Text style={styles.warn}>Market closed</Text> : null}
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
@@ -161,6 +167,11 @@ export function Betslip({ onPlaced }: { onPlaced?: () => void }) {
             <Text style={styles.muted}>{type.folds ? 'Return if every selection wins' : 'Potential return'}</Text>
             <Text style={styles.payout}>{formatRand(payoutMinor)}</Text>
           </View>
+          {boostPercent > 0 ? (
+            <Text style={styles.boost}>
+              Acca boost {boostPercent}%: +{formatRand(boostMinor)} if it wins
+            </Text>
+          ) : null}
 
           {place.isError ? (
             <Text style={styles.error} accessibilityRole="alert">
@@ -222,6 +233,7 @@ const styles = StyleSheet.create({
   bankerText: { color: colors.textMuted, fontWeight: '900', fontSize: 12 },
   bankerTextOn: { color: '#1a1300' },
   chipText: { color: colors.text, fontSize: 13, fontWeight: '800' },
+  boost: { color: colors.positive, fontSize: 13, fontWeight: '700' },
   muted: { color: colors.textMuted, fontSize: 13 },
   payout: { color: colors.positive, fontWeight: '800', fontSize: 18, fontVariant: ['tabular-nums'] },
   error: { color: colors.negative, fontSize: 13 },

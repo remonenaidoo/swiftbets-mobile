@@ -3,10 +3,19 @@ export interface Money {
   currency: string;
 }
 
+export interface OddsBoost {
+  odds: number;
+  from: string;
+  until: string;
+  maxStake: number;
+}
+
 export interface Selection {
   selectionId: string;
   name: string;
   odds: number;
+  /** A trader's boosted price, present only while it is in its window. */
+  boost?: OddsBoost | null;
 }
 
 export interface Market {
@@ -25,6 +34,14 @@ export interface Fixture {
   status: string;
   offerVersion: number;
   markets: Market[];
+  /** True when the competition offers the bet builder. */
+  betBuilder?: boolean;
+}
+
+export interface BuilderComponent {
+  marketId: string;
+  selectionId: string;
+  odds: number;
 }
 
 export interface MyCouponLeg {
@@ -33,6 +50,7 @@ export interface MyCouponLeg {
   marketId: string;
   selectionId: string;
   odds: number;
+  builder?: { components: BuilderComponent[] } | null;
 }
 
 export interface MyCoupon {
@@ -49,6 +67,8 @@ export interface MyCoupon {
   payout: number | null;
   paidToDate: number;
   updatedAt: string;
+  accaBoostPercent?: number | null;
+  boostBonus?: number | null;
 }
 
 export interface CatalogCompetition {
