@@ -12,6 +12,7 @@ import { colors, radius, spacing } from '../../../shared/ui/theme';
 import { useSignOut } from '../../account/api/account';
 import { useFixtures } from '../../fixtures/api/fixtures';
 import { useBalance } from '../../my-bets/api/myBets';
+import { pagePath, sitePages } from '../../content/api/content';
 
 const tiles = [
   { href: '/promotions', label: 'Promotions', icon: 'nav/promotions' as IconName },
@@ -118,6 +119,15 @@ export function MenuScreen() {
           <Text style={styles.rowText}>↩ Sign out</Text>
         </Pressable>
       ) : null}
+      <Text style={styles.heading}>HELP AND POLICIES</Text>
+      {sitePages.map((p) => (
+        <Link key={p.slug} href={pagePath(p.slug) as never} asChild>
+          <Pressable accessibilityRole="link" style={styles.row}>
+            <Text style={styles.rowText}>{p.label}</Text>
+            <Text style={styles.rowMeta}>›</Text>
+          </Pressable>
+        </Link>
+      ))}
       <View style={styles.app}>
         <GetTheApp />
       </View>
@@ -147,4 +157,5 @@ const styles = StyleSheet.create({
   rowText: { color: colors.text, fontWeight: '700', fontSize: 14, flexShrink: 1 },
   rowMeta: { color: colors.textMuted, fontSize: 12 },
   app: { alignItems: 'center', marginTop: spacing.md },
+  heading: { color: colors.textMuted, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginTop: spacing.sm },
 });

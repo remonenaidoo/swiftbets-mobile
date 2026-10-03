@@ -1,41 +1,44 @@
 import { CtaLink } from '../../../shared/ui/CtaLink';
 import { useEffect, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { banners } from '../../../shared/ui/artwork';
 import { useIsWide } from '../../../shared/ui/Layout';
 import { colors, radius, spacing } from '../../../shared/ui/theme';
-import { promos } from '../promos';
+import { useHomeContent } from '../../content/api/content';
+import { promosFrom } from '../promos';
 
 /** Rotates every seven seconds; the dots jump straight to a slide. */
 export function PromoCarousel() {
   const wide = useIsWide();
+  const content = useHomeContent();
+  const promos = promosFrom(content.data?.banners);
+  const count = promos.length;
   const [index, setIndex] = useState(0);
   useEffect(() => {
-    const timer = setInterval(() => setIndex((i) => (i + 1) % promos.length), 7000);
+    const timer = setInterval(() => setIndex((i) => (i + 1) % count), 7000);
     return () => clearInterval(timer);
-  }, []);
-  const promo = promos[index] ?? promos[0]!;
+  }, [count]);
+  const promo = promos[index % count] ?? promos[0]!;
   const height = wide ? 260 : 180;
   const [width, setWidth] = useState(0);
 
   return (
     <View style={[styles.slide, { height, backgroundColor: promo.tint[0] }]} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
       {/* The banner's artwork sits on its right; anchoring it there keeps it in view at any width. */}
-      <Image source={banners[promo.banner]} style={[styles.banner, bannerFrame(width, height)]} resizeMode="cover" aria-hidden />
+      <Image source={promo.banner} style={[styles.banner, bannerFrame(width, height)]} resizeMode="cover" aria-hidden />
       {/* A stepped fade from the left keeps the text legible over busy artwork. */}
       {scrim.map((step) => (
         <View key={step.width} style={[styles.scrim, { width: step.width, opacity: step.opacity }]} />
       ))}
-      <Text style={styles.kicker}>{promo.kicker}</Text>
+      {promo.kicker ? <Text style={styles.kicker}>{promo.kicker}</Text> : null}
       <Text style={[styles.title, wide && styles.titleWide]}>{promo.title}</Text>
       <Text style={styles.body} numberOfLines={2}>
         {promo.body}
       </Text>
-      <CtaLink href={promo.href} label={promo.cta} style={styles.cta} textStyle={styles.ctaText} />
+      {promo.href && promo.cta ? <CtaLink href={promo.href} label={promo.cta} style={styles.cta} textStyle={styles.ctaText} /> : null}
       <View style={styles.dots} role="tablist">
         {promos.map((p, i) => (
-          <Pressable key={p.key} role="tab" aria-selected={i === index} accessibilityLabel={`Promotion ${i + 1} of ${promos.length}`} onPress={() => setIndex(i)} style={styles.dotTarget}>
-            <View style={[styles.dot, i === index && styles.dotOn]} />
+          <Pressable key={p.key} role="tab" aria-selected={i === index % count} accessibilityLabel={`Promotion ${i + 1} of ${promos.length}`} onPress={() => setIndex(i)} style={styles.dotTarget}>
+            <View style={[styles.dot, i === index % count && styles.dotOn]} />
           </Pressable>
         ))}
       </View>

@@ -2,16 +2,17 @@ import { CtaLink } from '../../../shared/ui/CtaLink';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useIsWide } from '../../../shared/ui/Layout';
 import { useState } from 'react';
-import { banners } from '../../../shared/ui/artwork';
 import { bannerFrame } from '../../home/components/PromoCarousel';
 import { Icon } from '../../../shared/ui/Icon';
 import { colors, radius, spacing } from '../../../shared/ui/theme';
-import { promos } from '../../home/promos';
+import { useHomeContent } from '../../content/api/content';
+import { promosFrom } from '../../home/promos';
 
-/** Offer cards: artwork (a gradient until it arrives), the offer, and where it leads. */
+/** Offer cards from the console's live banners (the built-in ones when there are none): artwork, the offer, and where it leads. */
 export function PromotionsScreen() {
   const wide = useIsWide();
   const [cardWidth, setCardWidth] = useState(0);
+  const promos = promosFrom(useHomeContent().data?.banners);
   return (
     <ScrollView contentContainerStyle={styles.page}>
       <View style={styles.titleRow}>
@@ -24,13 +25,13 @@ export function PromotionsScreen() {
         {promos.map((p) => (
           <View key={p.key} style={[styles.card, { width: wide ? '32%' : '100%' }]} onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}>
             <View style={[styles.art, { backgroundColor: p.tint[0] }]}>
-              <Image source={banners[p.banner]} style={[styles.banner, bannerFrame(cardWidth, 140)]} resizeMode="cover" aria-hidden />
-              <Text style={styles.kicker}>{p.kicker}</Text>
+              <Image source={p.banner} style={[styles.banner, bannerFrame(cardWidth, 140)]} resizeMode="cover" aria-hidden />
+              {p.kicker ? <Text style={styles.kicker}>{p.kicker}</Text> : null}
             </View>
             <View style={styles.body}>
               <Text style={styles.cardTitle}>{p.title.replaceAll('\n', ' ')}</Text>
               <Text style={styles.text}>{p.body}</Text>
-              <CtaLink href={p.href} label={p.cta} style={styles.cta} textStyle={styles.ctaText} />
+              {p.href && p.cta ? <CtaLink href={p.href} label={p.cta} style={styles.cta} textStyle={styles.ctaText} /> : null}
             </View>
           </View>
         ))}

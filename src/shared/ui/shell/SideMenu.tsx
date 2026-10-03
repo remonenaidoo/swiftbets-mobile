@@ -1,3 +1,4 @@
+import { pagePath, sitePages } from "../../../features/content/api/content";
 import { Link, usePathname } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSports } from "../../../features/catalog/api/catalog";
@@ -112,6 +113,10 @@ export function SideMenu() {
             label={c.name}
             count={String(c.upcomingFixtures)}
           />
+        ))}
+        <Text style={styles.heading}>HELP</Text>
+        {sitePages.map((p) => (
+          <Item key={p.slug} href={pagePath(p.slug)} label={p.label} />
         ))}
       </ScrollView>
     </View>

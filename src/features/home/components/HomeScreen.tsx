@@ -15,7 +15,9 @@ import { useSports } from '../../catalog/api/catalog';
 import { useFixtures } from '../../fixtures/api/fixtures';
 import { FixtureCard } from '../../fixtures/components/FixtureCard';
 import { WinnersTicker } from '../../wins/components/WinnersTicker';
+import { SiteLinks } from '../../content/components/ContentPageScreen';
 import { PromoCarousel } from './PromoCarousel';
+import { QuickLinks } from './QuickLinks';
 
 function useMinute() {
   const [now, setNow] = useState(() => Date.now());
@@ -38,6 +40,7 @@ export function HomeScreen() {
       {wide ? null : <CategoryBar items={homeCategories} />}
       <View style={styles.inner}>
         <PromoCarousel />
+        <QuickLinks />
 
         <View style={styles.split}>
           <Link href="/sports/soccer" asChild>
@@ -85,6 +88,7 @@ export function HomeScreen() {
         <Text style={styles.legal}>
           {brandName} is a demonstration platform: no real money is wagered. 18+ only. Gambling can be addictive; play responsibly. Help: South African Responsible Gambling Foundation 0800 006 008.
         </Text>
+        <SiteLinks />
       </View>
     </ScrollView>
   );
