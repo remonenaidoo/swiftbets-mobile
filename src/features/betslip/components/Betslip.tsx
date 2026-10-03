@@ -3,11 +3,13 @@ import { useAtom, useSetAtom } from 'jotai';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { ApiError } from '../../../shared/lib/apiError';
-import { formatOdds, formatRand } from '../../../shared/lib/format';
+import { formatRand } from '../../../shared/lib/format';
 import { useSession } from '../../../shared/lib/useSession';
 import { colors, radius, spacing } from '../../../shared/ui/theme';
 import { toastAtom } from '../../../shared/ui/Toast';
+import { useFormatOdds } from '../../preferences/oddsFormat';
 import { usePlaceCoupon } from '../api/placeCoupon';
+import { BookingCodePanel } from './BookingCodePanel';
 import { acceptPrices, betTypeAtom, slipAtom, stakeAtom, toggleBanker, totalOdds } from '../state/betslip';
 import { betTypes, lineCount, linePayoutMinor, maxReturnMinor } from '../state/systemBets';
 
@@ -38,6 +40,7 @@ export function Betslip({ onPlaced }: { onPlaced?: () => void }) {
   const [confirmation, setConfirmation] = useState<string | null>(null);
   const toast = useSetAtom(toastAtom);
   const signedIn = useSession().data?.signedIn === true;
+  const formatOdds = useFormatOdds();
 
   const [betKey, setBetKey] = useAtom(betTypeAtom);
   const enteredMinor = Math.round((Number.parseFloat(stake.replace(',', '.')) || 0) * 100);
@@ -186,6 +189,7 @@ export function Betslip({ onPlaced }: { onPlaced?: () => void }) {
           {enteredMinor > 0 && enteredMinor < 100 ? <Text style={styles.muted}>Minimum stake is R1.</Text> : null}
         </>
       )}
+      <BookingCodePanel />
     </View>
   );
 }

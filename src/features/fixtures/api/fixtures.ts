@@ -5,7 +5,7 @@ import { useDeltas, useLiveInvalidation } from '../../../shared/realtime/useLive
 
 export const fixturesKey = ['fixtures'] as const;
 
-/** Upcoming fixtures with their markets; each fixture-changed delta replaces that fixture in place. */
+/** Upcoming fixtures with their markets (enough for the whole day's coupon); each fixture-changed delta replaces that fixture in place. */
 export function useFixtures() {
   const queryClient = useQueryClient();
   useLiveInvalidation([], fixturesKey);
@@ -28,5 +28,5 @@ export function useFixtures() {
     });
   });
 
-  return useQuery({ queryKey: fixturesKey, queryFn: () => api<Fixture[]>('/fixtures/?limit=60') });
+  return useQuery({ queryKey: fixturesKey, queryFn: () => api<Fixture[]>('/fixtures/?limit=200') });
 }
