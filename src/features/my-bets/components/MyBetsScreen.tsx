@@ -1,7 +1,8 @@
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { formatOdds, formatRand } from '../../../shared/lib/format';
+import { formatRand } from '../../../shared/lib/format';
+import { useFormatOdds } from '../../preferences/oddsFormat';
 import { api } from '../../../shared/lib/session';
 import type { Fixture, MyCoupon, MyCouponLeg } from '../../../shared/lib/types';
 import { EmptyState } from '../../../shared/ui/EmptyState';
@@ -59,6 +60,7 @@ export function MyBetsScreen() {
   const bets = useMyBets(tab === 'open');
   const shown = (bets.data ?? []).filter((c) => tab === 'open' || tab === 'all' || (tab === 'won' ? c.status === 'won' || c.status === 'cashedOut' || c.paidToDate > 0 : c.status === 'lost'));
   const signedIn = useSession().data?.signedIn === true;
+  const formatOdds = useFormatOdds();
   const listed = useQueryClient().getQueryData<Fixture[]>(fixturesKey) ?? [];
   const legFixtureIds = [...new Set((bets.data ?? []).flatMap((c) => (c.legs ?? []).map((l) => l.fixtureId)))];
   // Matches leave the listing once played; their names come from the fixture itself.

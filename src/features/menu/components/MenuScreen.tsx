@@ -12,11 +12,13 @@ import { colors, radius, spacing } from '../../../shared/ui/theme';
 import { useSignOut } from '../../account/api/account';
 import { useFixtures } from '../../fixtures/api/fixtures';
 import { useBalance } from '../../my-bets/api/myBets';
+import { OddsFormatPicker } from '../../preferences/components/OddsFormatPicker';
 
 const tiles = [
   { href: '/promotions', label: 'Promotions', icon: 'nav/promotions' as IconName },
   { href: '/my-bets', label: 'My bets', icon: 'nav/my-bets' as IconName },
   { href: '/sports/soccer', label: 'Football', icon: 'sports/football' as IconName },
+  { href: '/coupon', label: "Today's coupon", icon: 'nav/sports' as IconName },
   { href: '/casino', label: 'Casino', icon: 'nav/casino' as IconName },
 ];
 
@@ -118,6 +120,9 @@ export function MenuScreen() {
           <Text style={styles.rowText}>↩ Sign out</Text>
         </Pressable>
       ) : null}
+      <View style={styles.prefs}>
+        <OddsFormatPicker />
+      </View>
       <View style={styles.app}>
         <GetTheApp />
       </View>
@@ -147,4 +152,5 @@ const styles = StyleSheet.create({
   rowText: { color: colors.text, fontWeight: '700', fontSize: 14, flexShrink: 1 },
   rowMeta: { color: colors.textMuted, fontSize: 12 },
   app: { alignItems: 'center', marginTop: spacing.md },
+  prefs: { backgroundColor: colors.card, borderRadius: radius.md, padding: 14 },
 });

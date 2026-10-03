@@ -1,4 +1,5 @@
 import { Link, usePathname } from "expo-router";
+import { OddsFormatPicker } from "../../../features/preferences/components/OddsFormatPicker";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSports } from "../../../features/catalog/api/catalog";
 import type { IconName } from "../artwork";
@@ -92,6 +93,7 @@ export function SideMenu() {
         </View>
         <Item href="/" label="Home" icon="nav/home" />
         <Item href="/my-bets" label="My bets" icon="nav/my-bets" />
+        <Item href="/coupon" label="Today's coupon" icon="nav/sports" />
         <Text style={styles.heading}>SPORTS</Text>
         <Item
           href="/sports/soccer"
@@ -113,6 +115,9 @@ export function SideMenu() {
             count={String(c.upcomingFixtures)}
           />
         ))}
+        <View style={styles.prefs}>
+          <OddsFormatPicker />
+        </View>
       </ScrollView>
     </View>
   );
@@ -128,6 +133,7 @@ const styles = StyleSheet.create({
     borderRightColor: colors.border,
   },
   content: { padding: spacing.md, gap: 2 },
+  prefs: { marginTop: spacing.lg },
   switch: { flexDirection: "row", gap: spacing.xs, marginBottom: spacing.md },
   switchItem: {
     flex: 1,

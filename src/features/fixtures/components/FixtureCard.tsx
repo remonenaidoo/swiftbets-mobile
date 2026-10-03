@@ -2,10 +2,11 @@ import { Link } from 'expo-router';
 import { useAtom } from 'jotai';
 import { memo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { formatKickoff, formatOdds } from '../../../shared/lib/format';
+import { formatKickoff } from '../../../shared/lib/format';
 import type { Fixture, Market } from '../../../shared/lib/types';
 import { colors, radius, spacing } from '../../../shared/ui/theme';
 import { slipAtom, toggleSelection } from '../../betslip/state/betslip';
+import { useFormatOdds } from '../../preferences/oddsFormat';
 import { marketLabel } from './marketLabel';
 
 /** A team's initials on a colour derived from its name, standing in for a crest. */
@@ -21,6 +22,7 @@ export function Crest({ name, size = 20 }: { name: string; size?: number }) {
 
 export function OddsRow({ fixture, market }: { fixture: Fixture; market: Market }) {
   const [slip, setSlip] = useAtom(slipAtom);
+  const formatOdds = useFormatOdds();
   const fixtureName = `${fixture.homeTeam} v ${fixture.awayTeam}`;
   const open = market.status === 'open' && fixture.status === 'scheduled';
   return (

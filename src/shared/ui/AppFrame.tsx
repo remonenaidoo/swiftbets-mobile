@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Betslip } from '../../features/betslip/components/Betslip';
 import { BetslipSheet } from '../../features/betslip/components/BetslipSheet';
 import { usePersistedSlip } from '../../features/betslip/state/usePersistedSlip';
+import { useOddsFormatSync } from '../../features/preferences/oddsFormat';
 import { useIsWide } from './Layout';
 import { BottomNav } from './shell/BottomNav';
 import { Header } from './shell/Header';
@@ -14,6 +15,7 @@ import { colors, maxContentWidth } from './theme';
 export function AppFrame({ children }: { children: ReactNode }) {
   const wide = useIsWide();
   usePersistedSlip();
+  useOddsFormatSync();
 
   return (
     <View style={styles.root}>

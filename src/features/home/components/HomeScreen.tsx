@@ -59,6 +59,13 @@ export function HomeScreen() {
           </Link>
         </View>
 
+        <Link href="/coupon" asChild>
+          <Pressable accessibilityRole="link" style={styles.coupon}>
+            <Text style={styles.couponTitle}>Today&apos;s coupon</Text>
+            <Text style={styles.bigMeta}>Every match today on one page ›</Text>
+          </Pressable>
+        </Link>
+
         <WinnersTicker />
 
         <Section title="Next up" icon="sports/football" href="/sports/soccer" more="All football">
@@ -98,6 +105,8 @@ const styles = StyleSheet.create({
   bigTitle: { color: colors.text, fontSize: 16, fontWeight: '800' },
   bigMeta: { color: colors.textMuted, fontSize: 12, fontWeight: '600' },
   dot: { color: colors.positive },
+  coupon: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'space-between', gap: spacing.xs, backgroundColor: colors.card, borderRadius: radius.md + 2, paddingVertical: spacing.sm + 4, paddingHorizontal: spacing.md },
+  couponTitle: { color: colors.text, fontSize: 15, fontWeight: '800' },
   muted: { color: colors.textMuted },
   cards: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md - 4 },
   cardWide: { width: '49.2%' },
