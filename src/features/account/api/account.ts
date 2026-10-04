@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, signIn, signOut } from '../../../shared/lib/session';
+import { sendDeviceSignal } from '../../../shared/lib/deviceSignal';
 import { sessionQueryKey } from '../../../shared/lib/useSession';
 
 const json = (body: unknown): RequestInit => ({ method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -21,6 +22,7 @@ export function useSignIn() {
   return useMutation({
     mutationFn: ({ login, password }: { login: string; password: string }) => signIn(login, password),
     onSuccess: async () => {
+      void sendDeviceSignal('sign-in');
       await queryClient.invalidateQueries({ queryKey: sessionQueryKey });
       await queryClient.invalidateQueries({ queryKey: ['me'] });
     },
