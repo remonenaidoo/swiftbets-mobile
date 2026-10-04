@@ -25,6 +25,7 @@ const rows = [
   { href: '/notifications', label: 'Notification settings', icon: 'nav/settings' as IconName },
   { href: '/account', label: 'Account', icon: 'nav/account' as IconName },
   { href: '/account/wallet', label: 'Wallet & transactions', icon: 'nav/transactions' as IconName },
+  { href: '/airtime', label: 'Airtime and data', icon: 'nav/transactions' as IconName },
   { href: '/account/safer-gambling', label: 'Safer gambling & limits', icon: 'nav/safer-gambling' as IconName },
 ];
 

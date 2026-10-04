@@ -92,6 +92,7 @@ export function SideMenu() {
         </View>
         <Item href="/" label="Home" icon="nav/home" />
         <Item href="/my-bets" label="My bets" icon="nav/my-bets" />
+        <Item href="/airtime" label="Airtime and data" icon="nav/transactions" />
         <Text style={styles.heading}>SPORTS</Text>
         <Item
           href="/sports/soccer"
